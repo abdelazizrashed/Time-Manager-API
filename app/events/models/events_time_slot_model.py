@@ -1,45 +1,50 @@
-from db_man import db, db_url
+from app.db_man import DBMan
 import sqlite3
 import app
 
 
-class EventsTimeSlotModel(db.Model):
+class EventsTimeSlotModel(DBMan.db.Model):
     __tablename__ = 'EventsTimeSlots'
 
     
     #region SQLAlchemy table columns
+    time_slot_id = DBMan.db.Column(
+        DBMan.db.Integer, 
+        primary_key=True, 
+        autoincrement = True
+    )
 
-    time_form = db.Column(
-        db.String(100),
+    time_form = DBMan.db.Column(
+        DBMan.db.String(100),
         nullable = False
     )
 
-    time_to = db.Column(
-        db.String(100),
+    time_to = DBMan.db.Column(
+        DBMan.db.String(100),
         nullable = False
     )
 
-    location = db.Column(
-        db.String(100),
+    location = DBMan.db.Column(
+        DBMan.db.String(100),
         nullable = True,
         default = None
     )
 
-    repeat = db.Column(
-        db.String(100),
+    repeat = DBMan.db.Column(
+        DBMan.db.String(100),
         nullable = True,
         default = None
     )
 
-    reminder = db.Column(
-        db.String(100),
+    reminder = DBMan.db.Column(
+        DBMan.db.String(100),
         nullable = True,
         default = None
     )
 
-    event_id = db.Column(
-        db.Integer,
-        db.ForeignKey('Events.event_id'),
+    event_id = DBMan.db.Column(
+        DBMan.db.Integer,
+        DBMan.db.ForeignKey('Events.event_id'),
         nullable = False
     )
 
