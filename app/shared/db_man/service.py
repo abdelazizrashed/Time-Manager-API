@@ -3,13 +3,9 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from typing import Iterable
 
+db = SQLAlchemy()
 
 class DBMan:
-
-    @staticmethod
-    def get_db():
-        db = SQLAlchemy()
-        return db
 
     @staticmethod
     def execute_sql_query(app: Flask, query: str, params: Iterable = ()):
@@ -159,6 +155,8 @@ class DBMan:
                     );
                     """
             DBMan.execute_sql_query(app, query)
+
+            db.create_all(app = app)
 
         else:
             db.create_all(app = app)

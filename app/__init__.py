@@ -8,7 +8,7 @@ from flask_jwt_extended import JWTManager
 from typing import Iterable
 from .auth.interfaces.user_model_interface import UserModelInterface
 from .auth.services.user_model_service import UserModelService
-from .shared.db_man.service import DBMan
+from .shared.db_man.service import DBMan, db
 from .shared.jwt.token_blocklist_model import TokenBlocklistModel
 
 #endregion
@@ -23,15 +23,16 @@ def create_app(env = None):
     api = Api(app)
 
     jwt = JWTManager(app)
-
-    db = DBMan.get_db()
+    db.app = app
     db.init_app(app)
+    db.create_all(app = app)
 
     register_routes(api, app)
 
     @app.route('/health')
     def healthy():
         return jsonify('healthy')
+
 
     DBMan.create_tables(app, db) #TODO: find a better place for creating tables later
 

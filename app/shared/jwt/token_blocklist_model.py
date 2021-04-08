@@ -1,8 +1,10 @@
-from app.shared.db_man.service import DBMan
+from app.shared.db_man.service import DBMan, db
 
-db = DBMan.get_db()
 
 class TokenBlocklistModel(db.Model):
+
+    __tablename__ = 'TokenBlocklist'
+
     id = db.Column(
         db.Integer,
         primary_key = True

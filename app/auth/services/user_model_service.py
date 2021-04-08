@@ -15,6 +15,7 @@ class UserModelService:
         return {
             'user_id': user.user_id,
             'username': user.username,
+            'is_admin': user.is_admin,
             'email': user.email,
             'first_name': user.first_name,
             'last_name': user.last_name

@@ -8,12 +8,10 @@ from flask_jwt_extended import (
     get_jwt_identity,
     get_jwt
     )
-from app.shared.db_man.service import DBMan
+from app.shared.db_man.service import DBMan, db
 from ..services.user_model_service import UserModelService
 from ..interfaces.user_model_interface import UserModelInterface
 from ..models.user_model import UserModel
-
-db = DBMan.get_db()
 
 
 #region Request Parser arguments
@@ -78,14 +76,7 @@ class UserRegisterResource(Resource):
                 'description': "A user with this email already exists.",
                 'error': 'email_exists'
             }, 400
-        user_attrs: UserModelInterface = dict(
-                                                username = data['username'], 
-                                                email = data['email'], 
-                                                password = data['password'], 
-                                                first_name = data['first_name'], 
-                                                last_name = data['last_name']
-        
-                                            )
+        user_attrs: UserModelInterface = dict(data)
         
         if self.app:
             user = UserModelService.create(user_attrs, self.app, db)
@@ -102,38 +93,99 @@ class UserRegisterResource(Resource):
         
 
 class AdminRegisterResource(Resource):
-    pass
+
+    
+    def __init__(self, app: Flask):
+        self.app = app
+    
+    @jwt_required(fresh= True)
+    def post(self):
+        claims = get_jwt()
+        if not claims['is_admin']:
+            return {
+                'description': "Admin privileges are required",
+                'error': 'admin_required'
+            }, 401
+        data = _user_parser.parse_args()
+
+        user: UserModel = UserModelService.retrieve_by_user_id(data['user_id'], self.app)
+        update: UserModelInterface = dict(is_admin = 1)
+
+        user =  UserModelService.update(user, update, self.app, db)
+
+        return UserModelService.json(user)
+
 
 
 class AdminRemoveResource(Resource):
+
+    
+    def __init__(self, app: Flask):
+        self.app = app
     pass
 
 
 class UserLoginWithEmailResource(Resource):
+
+    
+    def __init__(self, app: Flask):
+        self.app = app
     pass
 
 
 class UserLoginWithUsernameResource(Resource):
+
+    
+    def __init__(self, app: Flask):
+        self.app = app
     pass
 
 
 class UserLogoutResource(Resource):
+
+    
+    def __init__(self, app: Flask):
+        self.app = app
     pass
 
 
 class UpdateUserResource(Resource):
+
+    
+    def __init__(self, app: Flask):
+        self.app = app
     pass
 
 
 class DeleteUserResource(Resource):
+
+    
+    def __init__(self, app: Flask):
+        self.app = app
     pass
 
 
 class UsersListResource(Resource):
+
+    
+    def __init__(self, app: Flask):
+        self.app = app
     pass
 
 
 class UserResource(Resource):
+
+    
+    def __init__(self, app: Flask):
+        self.app = app
+    pass
+
+
+class TokenRefreshResource(Resource):
+
+    
+    def __init__(self, app: Flask):
+        self.app = app
     pass
 
 
