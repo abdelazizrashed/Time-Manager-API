@@ -42,10 +42,7 @@ def create_app(env = None):
         '''
         This method is used to attach the information of the user to the JWT access token.
         '''
-        print(identity)
         user = UserModelService.retrieve_by_user_id(identity, app)
-        if not user:
-            print('user not exists')
         return {
             'user_id': user.user_id,
             'username': user.username,

@@ -15,56 +15,59 @@ from ..models.user_model import UserModel
 
 db = DBMan.get_db()
 
+
+#region Request Parser arguments
+
+_user_parser = reqparse.RequestParser()
+
+_user_parser.add_argument(
+    'username',
+    type = str, 
+    required = True, 
+    help = "A unique username for the user that identifies him/ her"
+)
+
+_user_parser.add_argument(
+    'password', 
+    type = str, 
+    required = True, 
+    help = "The password of the user which will be used to authenticate him/ her"
+)
+
+
+_user_parser.add_argument(
+    'email',
+    type = str, 
+    required = True, 
+    help = "A unique email for the user that will be attached to the account."
+)
+
+_user_parser.add_argument(
+    'first_name', 
+    type = str, 
+    required = True, 
+    help = "The first name of the user"
+)
+
+_user_parser.add_argument(
+    'last_name',
+    type = str, 
+    required = True, 
+    help = "The last name of the user."
+)
+
+#endregion
+
+
+
 class UserRegisterResource(Resource):
 
-    #region Request Parser arguments
-
-    parser = reqparse.RequestParser()
-
-    parser.add_argument(
-        'username',
-        type = str, 
-        required = True, 
-        help = "A unique username for the user that identifies him/ her"
-    )
     
-    parser.add_argument(
-        'password', 
-        type = str, 
-        required = True, 
-        help = "The password of the user which will be used to authenticate him/ her"
-    )
-
-
-    parser.add_argument(
-        'email',
-        type = str, 
-        required = True, 
-        help = "A unique email for the user that will be attached to the account."
-    )
-
-    parser.add_argument(
-        'first_name', 
-        type = str, 
-        required = True, 
-        help = "The first name of the user"
-    )
-
-    parser.add_argument(
-        'last_name',
-        type = str, 
-        required = True, 
-        help = "The last name of the user."
-    )
-
-    #endregion
-
     def __init__(self, app: Flask):
         self.app = app
 
     def post(self):
-        print("user register post method got called")
-        data = self.parser.parse_args()
+        data = _user_parser.parse_args()
         if UserModelService.retrieve_by_username(data['username'], self.app):
             return {
                 'description': "A user with this username already exists.",
@@ -96,8 +99,6 @@ class UserRegisterResource(Resource):
                 'refresh_token': refresh_token
             }, 201
         return 500
-
-
         
 
 class AdminRegisterResource(Resource):

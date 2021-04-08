@@ -83,9 +83,6 @@ def test_update_test(app_test: Flask):
             """
     rows = execute_sql_query(app = app_test, query = query)
 
-    for row in rows:
-        print('the first select')
-        print(row)
     query = """
             INSERT INTO Users 
             VALUES (NULL, ?, ?, ?, ?, ?);
@@ -97,9 +94,6 @@ def test_update_test(app_test: Flask):
             """
     rows = execute_sql_query(app = app_test, query = query)
 
-    for row in rows:
-        print('the second select')
-        print(row)
     updates: UserModelInterface = dict(password = 'qwe')
 
     #act 
