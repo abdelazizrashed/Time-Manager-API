@@ -1,0 +1,19 @@
+from .resources.auth_resources import *
+#  (
+#     UserRegisterResource,
+#     AdminRegisterResource,
+#     AdminRemoveResource,
+#     UserLoginWithEmailResource,
+#     UserLoginWithUsernameResource,
+#     UserLogoutResource, 
+#     )
+def register_routes(api):
+    api.add_resource(UserRegisterResource, '/auth/register')
+    api.add_resource(AdminRegisterResource, "/auth/admin-register")
+    api.add_resource(UserLoginWithEmailResource, "/auth/login-with-email")
+    api.add_resource(UserLoginWithUsernameResource, "/auth/login-with-username")
+    api.add_resource(UserLogoutResource, "/auth/logout")
+    api.add_resource(UpdateUserResource, "/auth/update-user")
+    api.add_resource(DeleteUserResource, '/auth/delete-user')
+    api.add_resource(UsersListResource, '/auth/users')
+    api.add_resource(UserResource, '/auth/user/<int:user_id')

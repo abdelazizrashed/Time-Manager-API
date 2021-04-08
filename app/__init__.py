@@ -4,6 +4,12 @@ import sqlite3
 from flask import Flask, jsonify
 from flask_restful import Api
 from flask_sqlalchemy import SQLAlchemy
+from flask_jwt_extended import JWTManager
+from typing import Iterable
+from .auth.interfaces.user_model_interface import UserModelInterface
+from .auth.services.user_model_service import UserModelService
+from .shared.db_man.service import DBMan
+from .shared.jwt.token_blocklist_model import TokenBlocklistModel
 
 #endregion
 
@@ -18,162 +24,79 @@ def create_app(env = None):
     app.config.from_object(config_by_name[env or 'test'])
     api = Api(app)
 
-    register_routes(api, app)
+    jwt = JWTManager(app)
+
     db.init_app(app)
+
+    register_routes(api, app)
 
     @app.route('/health')
     def healthy():
         return jsonify('healthy')
 
-    create_tables(app) #TODO: find a better place for creating tables later
+    @app.before_first_request
+    def create():
+        DBMan.create_tables(app) #TODO: find a better place for creating tables later
+
+    #region JWT config methods
+
+    @jwt.additional_claims_loader
+    def add_claims_to_jwt(identity):
+        '''
+        This method is used to attach the information of the user to the jwt access token.
+        '''
+        user = UserModelService.retrieve_by_user_id(identity, app)
+        return {
+            'user_id': user.user_id,
+            'username': user.username,
+            'email': user.email,
+            'is_admin': user.is_admin == 1
+        }
+
+    @jwt.token_in_blocklist_loader #callback to chick if the jwt exists in the jwt blocklist database
+    def check_if_token_revoked(jwt_header, jwt_payload):
+        jti = jwt_payload['jti']
+        token = db.session.query(TokenBlocklistModel.id).filter_by(jti = jti).scalar()
+        return token is not None
+
+    @jwt.expired_token_loader #going to be called when the toke expirs
+    def expired_token_callback(jwt_header, jwt_payload):
+        return jsonify({
+            'description': 'The token has expired',
+            'error': 'token_expired'
+        }), 401
+
+    @jwt.invalid_token_loader #going to be called when the authentication is not jwt for example auth using jwt instead of Bearer when using flask_jwt_extended
+    def invalid_token_callback(error):
+        return jsonify({
+            'description': 'Signature verification failed',
+            'error': 'invalid_token'
+        }), 401
+
+    @jwt.unauthorized_loader #going to be called when they don't send us a jwt at all 
+    def missing_token_callback(str):
+        return  jsonify({
+            'description': 'Request does not contain an access token',
+            'error': 'authorization_required'
+        }), 401
+
+    @jwt.needs_fresh_token_loader #going to be called when the token is not fresh and a fresh one is needed
+    def token_not_fresh_callback():
+        return  jsonify({
+            'description': 'The token is not fresh',
+            'error': 'fresh_token_required'
+        }), 401
+
+    @jwt.revoked_token_loader #the toke has been revoked for example if the user is logged out
+    def revoked_token_callback(jwt_header, jwt_payload):
+        return  jsonify({
+            'description': 'The token has been revoked',
+            'error': 'token_revoked'
+        }), 401
+
+    #endregion
+    
 
     return app
 
 
-def execute_sql_query(app, query, params = ()):
-        '''
-        This method takes an SQLite query and execute it and returns the result.
-        '''
-        connection = sqlite3.connect(app.config['SQLITE_DB_FILE_NAME'])
-        curser = connection.cursor()
-
-        result = curser.execute(query, params)
-
-        connection.commit()
-        connection.close()
-
-        return result
-
-def create_tables(app):
-    '''
-    In case the mode of running this app is testing or debugging, 
-    this method will create sqlite database tables in local sqlite database server.
-    If this is a production server, it will create tables using SQLAlchemy.
-    '''
-    if app.config["DEBUG"] or app.config["TESTING"]: 
-        query = """
-                CREATE TABLE IF NOT EXISTS Users(
-                    user_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    username TEXT UNIQUE NOT NULL,
-                    password TEXT NOT NULL,
-                    email TEXT UNIQUE NOT NULL,
-                    first_name TEXT NOT NULL,
-                    last_name TEXT NOT NULL
-                );
-                """
-        execute_sql_query(app, query)
-
-        query = """
-                CREATE TABLE IF NOT EXISTS Colors(
-                    color_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    color_value TEXT NOT NULL
-                );
-                """
-        execute_sql_query(app, query)
-
-        query = """
-                CREATE TABLE IF NOT EXISTS TasksLists(
-                    list_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    list_title TEXT NOT NULL
-                );
-                """
-        execute_sql_query(app, query)
-
-        query = """
-                CREATE TABLE IF NOT EXISTS Events(
-                    event_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    event_title TEXT NOT NULL,
-                    event_description TEXT DEFAULT NULL,
-                    is_completed INTEGER DEFAULT 0,
-                    user_id INTEGER NOT NULL,
-                    color_id INTEGER NOT NULL,
-                    parent_event_id INTEGER DEFAULT NULL,
-                    FOREIGN KEY (user_id) REFERENCES Users(user_id),
-                    FOREIGN KEY (color_id) REFERENCES Colors(color_id),
-                    FOREIGN KEY (parent_event_id) REFERENCES Events(event_id)
-                );
-                """
-        execute_sql_query(app, query)
-
-        query = """
-                CREATE TABLE IF NOT EXISTS EventsTimeSlots(
-                    time_from TEXT NOT NULL,
-                    time_to TEXT NOT NULL,
-                    location TEXT DEFAULT NULL,
-                    repeat TEXT DEFAULT NULL,
-                    reminder TEXT DEFAULT NULL, 
-                    event_id INTEGER DEFAULT NULL,
-                    FOREIGN KEY (event_id) REFERENCES Events(event_id)
-                );
-                """
-        execute_sql_query(app, query)
-
-        query = """
-                CREATE TABLE IF NOT EXISTS Tasks(
-                    task_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    task_title TEXT NOT NULL,
-                    task_description TEXT,
-                    time_from TEXT NOT NULL,
-                    time_to TEXT NOT NULL,
-                    time_started TEXT,
-                    time_finished TEXT,
-                    is_completed INTEGER DEFAULT 0,
-                    repeat TEXT DEFAULT NULL,
-                    reminder TEXT DEFAULT NULL,
-                    list_id INTEGER NOT NULL,
-                    color_id INTEGER NOT NULL,
-                    user_id INTEGER NOT NULL,
-                    parent_event_id INTEGER DEFAULT NULL,
-                    parent_task_id INTEGER DEFAULT NULL,
-                    FOREIGN KEY (list_id) REFERENCES TasksList(list_id),
-                    FOREIGN KEY (color_id) REFERENCES Colors(color_id),
-                    FOREIGN KEY (user_id) REFERENCES Users(user_id),
-                    FOREIGN KEY (parent_event_id) REFERENCES Events(event_id),
-                    FOREIGN KEY (parent_task_id) REFERENCES Tasks(task_id)
-                );
-                """
-        execute_sql_query(app, query)
-
-        query = """
-                CREATE TABLE IF NOT EXISTS Reminders(
-                    reminder_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    reminder_title TEXT NOT NULL,
-                    reminder_description TEXT DEFAULT NULL,
-                    is_completed INTEGER DEFAULT 0,
-                    user_id INTEGER NOT NULL,
-                    color_id INTEGER NOT NULL,
-                    parent_event_id INTEGER DEFAULT NULL,
-                    FOREIGN KEY (user_id) REFERENCES Users(user_id),
-                    FOREIGN KEY (color_id) REFERENCES Colors(color_id),
-                    FOREIGN KEY (parent_event_id) REFERENCES Event(event_id)
-                );
-                """
-        execute_sql_query(app, query)
-
-        query = """
-                CREATE TABLE IF NOT EXISTS ReminderTimeSlots(
-                    time TEXT NOT NULL,
-                    repeat TEXT DEFAULT NULL,
-                    reminder TEXT DEFAULT NULL,
-                    reminder_id INTEGER NOT NULL,
-                    FOREIGN KEY (reminder_id) REFERENCES Reminders(reminder_id)
-                );
-                """
-        execute_sql_query(app, query)
-
-        query = """
-                CREATE TABLE IF NOT EXISTS Reports(
-                    time_started TEXT DEFAULT NULL,
-                    time_finished TEXT DEFAULT NULL,
-                    event_id INTEGER DEFAULT NULL,
-                    task_id INTEGER DEFAULT NULL, 
-                    reminder_id INTEGER DEFAULT NULL,
-                    FOREIGN KEY (event_id) REFERENCES Events(event_id),
-                    FOREIGN KEY (task_id) REFERENCES Tasks(task_id),
-                    FOREIGN KEY (reminder_id) REFERENCES Reminders(reminder_id)
-                );
-                """
-        execute_sql_query(app, query)
-
-    else:
-        db.create_all()
