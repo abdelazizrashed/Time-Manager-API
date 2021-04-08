@@ -26,6 +26,7 @@ def create_app(env = None):
     db.app = app
     db.init_app(app)
     db.create_all(app = app)
+    DBMan.create_tables(app, db) #TODO: find a better place for creating tables later
 
     register_routes(api, app)
 
@@ -34,7 +35,6 @@ def create_app(env = None):
         return jsonify('healthy')
 
 
-    DBMan.create_tables(app, db) #TODO: find a better place for creating tables later
 
     #region JWT config methods
 

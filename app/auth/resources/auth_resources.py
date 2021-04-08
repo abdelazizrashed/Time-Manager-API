@@ -19,38 +19,39 @@ from ..models.user_model import UserModel
 _user_parser = reqparse.RequestParser()
 
 _user_parser.add_argument(
+    'user_id', 
+    type=str, 
+    help="A unique number that identifies the user in the database"
+)
+
+_user_parser.add_argument(
     'username',
     type = str, 
-    required = True, 
     help = "A unique username for the user that identifies him/ her"
 )
 
 _user_parser.add_argument(
     'password', 
-    type = str, 
-    required = True, 
+    type = str,  
     help = "The password of the user which will be used to authenticate him/ her"
 )
 
 
 _user_parser.add_argument(
     'email',
-    type = str, 
-    required = True, 
+    type = str,  
     help = "A unique email for the user that will be attached to the account."
 )
 
 _user_parser.add_argument(
     'first_name', 
-    type = str, 
-    required = True, 
+    type = str,  
     help = "The first name of the user"
 )
 
 _user_parser.add_argument(
     'last_name',
-    type = str, 
-    required = True, 
+    type = str,  
     help = "The last name of the user."
 )
 
@@ -94,7 +95,6 @@ class UserRegisterResource(Resource):
 
 class AdminRegisterResource(Resource):
 
-    
     def __init__(self, app: Flask):
         self.app = app
     
@@ -109,11 +109,19 @@ class AdminRegisterResource(Resource):
         data = _user_parser.parse_args()
 
         user: UserModel = UserModelService.retrieve_by_user_id(data['user_id'], self.app)
+        if not user:
+            return {
+                'description': "The user_id is incorrect or the user doesn't exist.",
+                'error': 'invalid_user_id'
+            }, 404
         update: UserModelInterface = dict(is_admin = 1)
 
         user =  UserModelService.update(user, update, self.app, db)
 
-        return UserModelService.json(user)
+        return {
+            'message': "User upgraded to admin successfully",
+            "user_data": UserModelService.json(user)
+        }
 
 
 
@@ -127,10 +135,34 @@ class AdminRemoveResource(Resource):
 
 class UserLoginWithEmailResource(Resource):
 
-    
+
     def __init__(self, app: Flask):
         self.app = app
-    pass
+    
+
+    def post(self):
+        data = _user_parser.parse_args()
+
+        user: UserModel = UserModelService.retrieve_by_email(data['email'], self.app)
+        
+        if not user:
+            return {
+                'description': "The email is incorrect or the user doesn't exist",
+                'error': "invalid_email"
+            }, 404
+
+        if safe_str_cmp(user.password, data['password']):
+            access_token = create_access_token(identity= user.user_id, fresh = True)
+            refresh_token = create_refresh_token(identity= user.user_id)
+
+            return {
+                'access_token': access_token,
+                'refresh_token': refresh_token
+            }, 200
+        return {
+            'description': "The password provided didn't match the user password.",
+            'error': "invalid_password"
+        }, 401
 
 
 class UserLoginWithUsernameResource(Resource):
