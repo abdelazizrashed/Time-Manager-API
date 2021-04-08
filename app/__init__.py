@@ -1,4 +1,4 @@
-#region python liberaries imports
+#region python libraries imports
 
 import sqlite3
 from flask import Flask, jsonify
@@ -13,8 +13,6 @@ from .shared.jwt.token_blocklist_model import TokenBlocklistModel
 
 #endregion
 
-db = SQLAlchemy()
-
 
 def create_app(env = None):
     from app.config import config_by_name
@@ -26,6 +24,7 @@ def create_app(env = None):
 
     jwt = JWTManager(app)
 
+    db = DBMan.get_db()
     db.init_app(app)
 
     register_routes(api, app)
@@ -34,18 +33,19 @@ def create_app(env = None):
     def healthy():
         return jsonify('healthy')
 
-    @app.before_first_request
-    def create():
-        DBMan.create_tables(app) #TODO: find a better place for creating tables later
+    DBMan.create_tables(app, db) #TODO: find a better place for creating tables later
 
     #region JWT config methods
 
     @jwt.additional_claims_loader
     def add_claims_to_jwt(identity):
         '''
-        This method is used to attach the information of the user to the jwt access token.
+        This method is used to attach the information of the user to the JWT access token.
         '''
+        print(identity)
         user = UserModelService.retrieve_by_user_id(identity, app)
+        if not user:
+            print('user not exists')
         return {
             'user_id': user.user_id,
             'username': user.username,
@@ -59,7 +59,7 @@ def create_app(env = None):
         token = db.session.query(TokenBlocklistModel.id).filter_by(jti = jti).scalar()
         return token is not None
 
-    @jwt.expired_token_loader #going to be called when the toke expirs
+    @jwt.expired_token_loader #going to be called when the toke expires
     def expired_token_callback(jwt_header, jwt_payload):
         return jsonify({
             'description': 'The token has expired',
@@ -96,6 +96,17 @@ def create_app(env = None):
 
     #endregion
     
+    #adding admin
+    admin: UserModelInterface = dict(
+        username = "admin", 
+        is_admin = 1, 
+        email = "abdelaziz.y.rashed@gmail.com", 
+        password = "admin", 
+        first_name = "Abdelaziz", 
+        last_name = "Rashed"
+    )
+
+    UserModelService.create(admin, app, db)
 
     return app
 

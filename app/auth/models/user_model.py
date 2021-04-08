@@ -1,11 +1,12 @@
 import sqlite3
-from app import db
 from app.auth.interfaces.user_model_interface import UserModelInterface
+from app.shared.db_man.service import DBMan
 
+db = DBMan.get_db()
 
 class UserModel(db.Model):
     '''
-    The user model that is reponsible for storing the user data.
+    The user model that is responsible for storing the user data.
     '''
     __tablename__ = 'Users'
 

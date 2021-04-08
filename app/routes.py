@@ -1,4 +1,14 @@
 def register_routes(api, app, root = 'api'):
-    #TODO: import the register routes functions from each module as attach_<module_name>
-    #TODO: call each register routes function (attach_module) and pass the api and app to it
-    pass
+
+    from .auth import register_routes as attach_auth
+    from .events import register_routes as attach_events
+    from .reminders import  register_routes as attach_reminders
+    from .shared import register_routes as attach_shared
+    from .tasks import register_routes as attach_tasks
+
+
+    attach_auth(api, app)
+    attach_events(app, api)
+    attach_reminders(app, api)
+    attach_shared(app, api)
+    attach_tasks(app, api)

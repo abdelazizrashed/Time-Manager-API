@@ -8,3 +8,12 @@ class UserModelInterface(TypedDict, total = False):
     email: str
     first_name: str
     last_name: str
+
+    def __init__(self, user_id, is_admin, username, password, email, first_name, last_name):
+        self.user_id = user_id
+        self.is_admin = is_admin
+        self.username = username
+        self.password = password
+        self. email = email
+        self.first_name = first_name
+        self.last_name = last_name

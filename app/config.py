@@ -1,4 +1,5 @@
 import  os
+from datetime import timedelta
 from typing import List, Type
 
 
@@ -9,6 +10,8 @@ class BaseConfig(object):
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     DATABASE_URI = 'sqlite:///data.db'
     SQLITE_DB_FILE_NAME = 'data.db'
+    JWT_SECRET_KEY = 'secret key'
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours= 1)
     
 
 class DevelopmentConfig(BaseConfig):
@@ -18,6 +21,8 @@ class DevelopmentConfig(BaseConfig):
     TESTING = False
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_DATABASE_URI = BaseConfig.DATABASE_URI
+    JWT_SECRET_KEY = 'secret key'
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours= 1)
 
 
 class TestingConfig(BaseConfig):
@@ -27,6 +32,8 @@ class TestingConfig(BaseConfig):
     DEBUG = True
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL',BaseConfig.DATABASE_URI)
+    JWT_SECRET_KEY = 'secret key'
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours= 1)
 
 
 class ProductionConfig(BaseConfig):
@@ -36,6 +43,8 @@ class ProductionConfig(BaseConfig):
     DEBUG = False
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL',BaseConfig.DATABASE_URI)
+    JWT_SECRET_KEY = 'secret key'
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours= 1)
 
 
 EXPORT_CONFIGS: List[Type[BaseConfig]] = [

@@ -1,4 +1,6 @@
-from app import db
+from app.shared.db_man.service import DBMan
+
+db = DBMan.get_db()
 
 class TokenBlocklistModel(db.Model):
     id = db.Column(

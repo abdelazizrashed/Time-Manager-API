@@ -1,10 +1,15 @@
 import sqlite3
-from app import db
-from app.auth.services.user_model_service import UserModelService
-from app.auth.interfaces import user_model_interface
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from typing import Iterable
 
 
 class DBMan:
+
+    @staticmethod
+    def get_db():
+        db = SQLAlchemy()
+        return db
 
     @staticmethod
     def execute_sql_query(app: Flask, query: str, params: Iterable = ()):
@@ -23,7 +28,7 @@ class DBMan:
         return rows
 
     @staticmethod
-    def create_tables(app):
+    def create_tables(app:Flask, db: SQLAlchemy):
         '''
         In case the mode of running this app is testing or debugging, 
         this method will create sqlite database tables in local sqlite database server.
@@ -32,15 +37,16 @@ class DBMan:
         if app.config["DEBUG"] or app.config["TESTING"]: 
             query = """
                     CREATE TABLE IF NOT EXISTS Users(
+                        user_id INTEGER PRIMARY KEY AUTOINCREMENT,
                         username TEXT UNIQUE NOT NULL,
+                        is_admin INTEGER DEFAULT 0,
                         password TEXT NOT NULL,
                         email TEXT UNIQUE NOT NULL,
                         first_name TEXT NOT NULL,
-                        last_name TEXT NOT NULL,
-                        user_id INTEGER PRIMARY KEY AUTOINCREMENT
+                        last_name TEXT NOT NULL
                     );
                     """
-            execute_sql_query(app, query)
+            DBMan.execute_sql_query(app, query)
 
             query = """
                     CREATE TABLE IF NOT EXISTS Colors(
@@ -48,7 +54,7 @@ class DBMan:
                         color_value TEXT NOT NULL
                     );
                     """
-            execute_sql_query(app, query)
+            DBMan.execute_sql_query(app, query)
 
             query = """
                     CREATE TABLE IF NOT EXISTS TasksLists(
@@ -56,7 +62,7 @@ class DBMan:
                         list_title TEXT NOT NULL
                     );
                     """
-            execute_sql_query(app, query)
+            DBMan.execute_sql_query(app, query)
 
             query = """
                     CREATE TABLE IF NOT EXISTS Events(
@@ -72,7 +78,7 @@ class DBMan:
                         FOREIGN KEY (parent_event_id) REFERENCES Events(event_id)
                     );
                     """
-            execute_sql_query(app, query)
+            DBMan.execute_sql_query(app, query)
 
             query = """
                     CREATE TABLE IF NOT EXISTS EventsTimeSlots(
@@ -85,7 +91,7 @@ class DBMan:
                         FOREIGN KEY (event_id) REFERENCES Events(event_id)
                     );
                     """
-            execute_sql_query(app, query)
+            DBMan.execute_sql_query(app, query)
 
             query = """
                     CREATE TABLE IF NOT EXISTS Tasks(
@@ -111,7 +117,7 @@ class DBMan:
                         FOREIGN KEY (parent_task_id) REFERENCES Tasks(task_id)
                     );
                     """
-            execute_sql_query(app, query)
+            DBMan.execute_sql_query(app, query)
 
             query = """
                     CREATE TABLE IF NOT EXISTS Reminders(
@@ -127,7 +133,7 @@ class DBMan:
                         FOREIGN KEY (parent_event_id) REFERENCES Event(event_id)
                     );
                     """
-            execute_sql_query(app, query)
+            DBMan.execute_sql_query(app, query)
 
             query = """
                     CREATE TABLE IF NOT EXISTS ReminderTimeSlots(
@@ -138,7 +144,7 @@ class DBMan:
                         FOREIGN KEY (reminder_id) REFERENCES Reminders(reminder_id)
                     );
                     """
-            execute_sql_query(app, query)
+            DBMan.execute_sql_query(app, query)
 
             query = """
                     CREATE TABLE IF NOT EXISTS Reports(
@@ -152,24 +158,18 @@ class DBMan:
                         FOREIGN KEY (reminder_id) REFERENCES Reminders(reminder_id)
                     );
                     """
-            execute_sql_query(app, query)
+            DBMan.execute_sql_query(app, query)
 
         else:
             db.create_all(app = app)
 
-        admin: UserModelInterface = dict(username = "admin", admin = 1, email = "abdelaziz.y.rashed@gmail.com", password = "admin", first_name = "Abdelaziz", last_name = "Rashed")
-
-        UserModelService.create(admin, app)
         
 
     @staticmethod
-    def drop_tables(app):
+    def drop_tables(app: Flask, db:SQLAlchemy):
         '''
         This method deletes all tables (drop_all).
         '''
-        print('drop tables got called')
-        print(app.config['DEBUG'])
-        print(app.config['TESTING'])
         if app.config["DEBUG"] or app.config["TESTING"]:
             query = """
                     select 'drop table ' || name || ';' from sqlite_master
