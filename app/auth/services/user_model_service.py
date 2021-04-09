@@ -71,28 +71,27 @@ class UserModelService:
         This method updates the existing user with the new updates in the database.
         If the user does not exist in the database it will insert it to the database
         '''
+        user.update(updates)
         if not UserModelService.retrieve_by_user_id(user.user_id, app):
-            UserModelService.create(updates, app, db)
-        else:
-            if app.config['DEBUG'] or app.config['TESTING']:
-                user.update(updates)
-                query = """
-                        UPDATE Users
-                        SET username = ?, password = ?, email = ?, first_name = ?, last_name = ?
-                        WHERE user_id = ?;
-                        """
-                DBMan.execute_sql_query(app, query, (
-                    user.username, 
-                    user.password, 
-                    user.email, 
-                    user.first_name, 
-                    user.last_name,
-                    user.user_id
-                    )
+            return UserModelService.create(updates, app, db)
+        
+        if app.config['DEBUG'] or app.config['TESTING']:
+            query = """
+                    UPDATE Users
+                    SET username = ?, password = ?, email = ?, first_name = ?, last_name = ?
+                    WHERE user_id = ?;
+                    """
+            DBMan.execute_sql_query(app, query, (
+                user.username, 
+                user.password, 
+                user.email, 
+                user.first_name, 
+                user.last_name,
+                user.user_id
                 )
-            else:
-                user.update(updates)
-                db.session.commit()
+            )
+        else:
+            db.session.commit()
         return user
 
     
