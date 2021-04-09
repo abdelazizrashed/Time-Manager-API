@@ -1,127 +1,60 @@
-import sqlite3
-import app
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from typing import List
+from ..shared.db_man.service import DBMan
+from .models import EventModel, EventsTimeSlotModel
+from .interfaces import EventModelInterface, EventsTimeSlotModelInterface
 
-from app.db_man import DBMan
-from app.models.events_time_slot_model import EventsTimeSlotModel
 
+class EventModelService:
 
-
-
-class EventModel(db.Model):
-
-    __tablename__ = 'Events'
-
-    #region SQLAlchemy table columns
-
-    event_id = db.Column(
-        db.Integer, 
-        primary_key=True, 
-        autoincrement = True
-    )
-
-    event_title = db.Column(
-        db.String(50),
-        nullable = False
-    )
-
-    event_description = db.Column(
-        db.String(250),
-        nullable = True,
-        default = None
-    )
-
-    is_completed = db.Column(
-        db.Boolean,
-        nullable = True,
-        default = 0
-    )
-
-    user_id = db.Column(
-        db.Integer,
-        db.ForeignKey('Users.user_id'),
-        nullable = False
-    )
-
-    color_id = db.Column(
-        db.Integer,
-        db.ForeignKey('Colors.color_id'),
-        nullable = False
-    )
-
-    parent_event_id = db.Column(
-        db.Integer,
-        db.ForeignKey('Events.event_id'),
-        nullable = True,
-        default = None
-    )
-    #endregion
-
-    def __init__(
-        self, 
-        event_id,
-        event_title,
-        event_description,
-        is_completed,
-        user_id,
-        color_id,
-        parent_event_id
-        ):
-        self.event_id = event_id
-        self.event_title = event_title
-        self.event_description = event_description
-        self.is_completed = is_completed
-        self.user_id = user_id
-        self.color_id = color_id
-        self.parent_event_id = parent_event_id
-
-    def json(self):
+    @staticmethod
+    def json(event: EventModel):
         '''
         This method return the object in JSON format
         '''
-        #TODO: change it so that it return the json of the time slots as well as the json of the color
+        #TODO: change it so that it return the JSON of the time slots as well as the JSON of the color
         return {
-            'event_id': self.event_id,
-            'event_title': self.event_title,
-            'event_description': self.event_description,
-            'is_completed': self.is_completed,
-            'user_id': self.user_id,
-            'color_id': self.color_id,
-            'parent_event_id': self.parent_event_id
+            'event_id': event.event_id,
+            'event_title': event.event_title,
+            'event_description': event.event_description,
+            'is_completed': event.is_completed,
+            'user_id': event.user_id,
+            'color_id': event.color_id,
+            'parent_event_id': event.parent_event_id
         }
     
-    #region DB methods
-    def save_to_db(self):
+    #region DB CRUD methods
+    
+    @staticmethod
+    def create(event_attrs: EventModelInterface, app: Flask, db: SQLAlchemy) -> EventModel:
         '''
         This method saves the current event to the database.
         If the event already exists it will just update it.
         '''
-        if self.find_by_event_id(self.event_id):
-            self.update_in_db()
+        new_event: EventModel = EventModel()
+        new_event.update(event_attrs)
+        
+        if app.config['DEBUG'] or app.config['TESTING']:
+            query = """
+                    INSERT INTO Events VALUES (NULL, ?, ?, ?, ?, ?, ?);
+                    """
+            DBMan.execute_sql_query(app, query,(
+                new_event.event_title, 
+                new_event.event_description,
+                new_event.is_completed,
+                new_event.user_id,
+                new_event.color_id,
+                new_event.parent_event_id
+                ) 
+            )
         else:
-            if app.app.config['DEBUG']:
-                connection = sqlite3.Connection(db_url)
-                curser = connection.cursor()
+            db.session.add(new_event)
+            db.session.commit()
 
-                query = """
-                        INSERT INTO Events VALUES (NULL, ?, ?, ?, ?, ?, ?);
-                        """
-                curser.execute(query, (
-                    self.event_title, 
-                    self.event_description,
-                    self.is_completed,
-                    self.user_id,
-                    self.color_id,
-                    self.parent_event_id
-                    )
-                )
 
-                connection.commit()
-                connection.close()
-            else:
-                db.session.add(self)
-                db.session.commit()
-
-    def update_in_db(self):
+    @staticmethod
+    def update(event: EventModel, updates: EventModelInterface) -> EventModel:
         '''
         This method update the current event in the database.
         If the event already exists it will save it to the database.
@@ -154,7 +87,9 @@ class EventModel(db.Model):
             else:
                 db.session.commit()
 
-    def delete_from_db(self):
+
+    @staticmethod
+    def delete(event_id: int) -> int:
         '''
         This method will delete the current event from the database only if it exists.
         '''
@@ -182,8 +117,9 @@ class EventModel(db.Model):
                 db.session.delete(self)
                 db.session.commit()
 
-    @classmethod
-    def find_by_event_id(cls, event_id):
+    
+    @staticmethod
+    def retrieve_by_event_id(event_id: int) -> EventModel:
         '''
         This method searchs the database for an event with the given event id.
         If the event does not exist it will return None.
@@ -207,8 +143,9 @@ class EventModel(db.Model):
         else:
             return cls.query.filter_by(event_id = event_id).first()
 
-    @classmethod
-    def find_events_by_parent_id(cls, parent_event_id):
+    
+    @staticmethod
+    def retrieve_events_by_parent_id(parent_event_id: int) -> List[EventModel]:
         '''
         This method finds events by its parent event id and return a list of event that match.
         If nothing found it will return and empty list.
@@ -230,3 +167,6 @@ class EventModel(db.Model):
         else:
             return cls.query.filter_by(parent_event_id = parent_event_id).all()
     #endregion
+
+class EventsTimeSlotModelService:
+    pass

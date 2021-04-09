@@ -2,6 +2,7 @@ from flask import Flask
 from flask_restful import Api
 from .resources.auth_resources import *
 
+#TODO: remove the scripts from their separate directories into the main module directory
 
 def register_routes(api: Api, app: Flask):
     api.add_resource(UserRegisterResource, '/auth/register', resource_class_kwargs=dict(app = app))

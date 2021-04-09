@@ -9,6 +9,7 @@ class UserModelInterface(TypedDict, total = False):
     first_name: str
     last_name: str
 
+    #TODO: remove __init__
     def __init__(self, user_id, is_admin, username, password, email, first_name, last_name):
         self.user_id = user_id
         self.is_admin = is_admin
