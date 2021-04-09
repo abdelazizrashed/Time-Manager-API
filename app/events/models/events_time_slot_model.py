@@ -3,60 +3,7 @@ import sqlite3
 import app
 
 
-class EventsTimeSlotModel(DBMan.db.Model):
-    __tablename__ = 'EventsTimeSlots'
 
-    
-    #region SQLAlchemy table columns
-    time_slot_id = DBMan.db.Column(
-        DBMan.db.Integer, 
-        primary_key=True, 
-        autoincrement = True
-    )
-
-    time_form = DBMan.db.Column(
-        DBMan.db.String(100),
-        nullable = False
-    )
-
-    time_to = DBMan.db.Column(
-        DBMan.db.String(100),
-        nullable = False
-    )
-
-    location = DBMan.db.Column(
-        DBMan.db.String(100),
-        nullable = True,
-        default = None
-    )
-
-    repeat = DBMan.db.Column(
-        DBMan.db.String(100),
-        nullable = True,
-        default = None
-    )
-
-    reminder = DBMan.db.Column(
-        DBMan.db.String(100),
-        nullable = True,
-        default = None
-    )
-
-    event_id = DBMan.db.Column(
-        DBMan.db.Integer,
-        DBMan.db.ForeignKey('Events.event_id'),
-        nullable = False
-    )
-
-    #endregion
-
-    def __init__(self, time_from, time_to, location, repeat, reminder, event_id):
-        self.time_form = time_from
-        self.time_to = time_to
-        self.location = location
-        self.repeat = repeat
-        self.remider = reminder
-        self.event_id = event_id
 
     def json(self):
         '''

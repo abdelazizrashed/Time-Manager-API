@@ -3,20 +3,20 @@ import sqlite3
 import app
 
 
-class ColorModel(DBMan.db.Model):
+class ColorModel(db.Model):
 
     __tablename__ = "Colors"
 
     #region SQLAlchemy table columns
 
-    color_id = DBMan.db.Column(
-        DBMan.db.Integer, 
+    color_id = db.Column(
+        db.Integer, 
         primary_key=True, 
         autoincrement = True
     )
 
-    color_value = DBMan.db.Column(
-        DBMan.db.String(50),
+    color_value = db.Column(
+        db.String(50),
         nullable = False
     )
 
@@ -45,7 +45,7 @@ class ColorModel(DBMan.db.Model):
             self.update_in_db()
         else:
             if app.app.config['DEBUG']:
-                connection = sqlite3.Connection(DBMan.db_url)
+                connection = sqlite3.Connection(db_url)
                 curser = connection.cursor()
 
                 query = """
@@ -59,8 +59,8 @@ class ColorModel(DBMan.db.Model):
                 connection.commit()
                 connection.close()
             else:
-                DBMan.db.session.add(self)
-                DBMan.db.session.commit()
+                db.session.add(self)
+                db.session.commit()
 
     def update_in_db(self):
         '''
@@ -71,7 +71,7 @@ class ColorModel(DBMan.db.Model):
             self.save_to_db()
         else:
             if app.app.config['DEBUG']:
-                connection = sqlite3.Connection(DBMan.db_url)
+                connection = sqlite3.Connection(db_url)
                 curser = connection.cursor()
 
                 query = """
@@ -88,7 +88,7 @@ class ColorModel(DBMan.db.Model):
                 connection.commit()
                 connection.close()
             else:
-                DBMan.db.session.commit()
+                db.session.commit()
 
     def delete_from_db(self):
         '''
@@ -96,7 +96,7 @@ class ColorModel(DBMan.db.Model):
         '''
         if self.find_by_color_id(self.color_id):
             if app.app.config['DEBUG']:
-                connection = sqlite3.connect(DBMan.db_url)
+                connection = sqlite3.connect(db_url)
                 curser = connection.cursor()
 
                 query = 'DELETE FROM Colors WHERE color_id = ?;'
@@ -105,8 +105,8 @@ class ColorModel(DBMan.db.Model):
                 connection.commit()
                 connection.close()
             else:
-                DBMan.db.session.delete(self)
-                DBMan.db.session.commit()
+                db.session.delete(self)
+                db.session.commit()
 
     @classmethod
     def find_by_color_id(cls, color_id):
@@ -115,7 +115,7 @@ class ColorModel(DBMan.db.Model):
         If the color does not exist it will return None.
         '''
         if app.app.config['DEBUG']:
-            connection = sqlite3.Connection(DBMan.db_url)
+            connection = sqlite3.Connection(db_url)
             curser = connection.cursor()
 
             query = 'SELECT * FROM Colors WHERE color_id = ?;'

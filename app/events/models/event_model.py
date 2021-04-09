@@ -7,50 +7,50 @@ from app.models.events_time_slot_model import EventsTimeSlotModel
 
 
 
-class EventModel(DBMan.db.Model):
+class EventModel(db.Model):
 
     __tablename__ = 'Events'
 
     #region SQLAlchemy table columns
 
-    event_id = DBMan.db.Column(
-        DBMan.db.Integer, 
+    event_id = db.Column(
+        db.Integer, 
         primary_key=True, 
         autoincrement = True
     )
 
-    event_title = DBMan.db.Column(
-        DBMan.db.String(50),
+    event_title = db.Column(
+        db.String(50),
         nullable = False
     )
 
-    event_description = DBMan.db.Column(
-        DBMan.db.String(250),
+    event_description = db.Column(
+        db.String(250),
         nullable = True,
         default = None
     )
 
-    is_completed = DBMan.db.Column(
-        DBMan.db.Boolean,
+    is_completed = db.Column(
+        db.Boolean,
         nullable = True,
         default = 0
     )
 
-    user_id = DBMan.db.Column(
-        DBMan.db.Integer,
-        DBMan.db.ForeignKey('Users.user_id'),
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey('Users.user_id'),
         nullable = False
     )
 
-    color_id = DBMan.db.Column(
-        DBMan.db.Integer,
-        DBMan.db.ForeignKey('Colors.color_id'),
+    color_id = db.Column(
+        db.Integer,
+        db.ForeignKey('Colors.color_id'),
         nullable = False
     )
 
-    parent_event_id = DBMan.db.Column(
-        DBMan.db.Integer,
-        DBMan.db.ForeignKey('Events.event_id'),
+    parent_event_id = db.Column(
+        db.Integer,
+        db.ForeignKey('Events.event_id'),
         nullable = True,
         default = None
     )
@@ -99,7 +99,7 @@ class EventModel(DBMan.db.Model):
             self.update_in_db()
         else:
             if app.app.config['DEBUG']:
-                connection = sqlite3.Connection(DBMan.db_url)
+                connection = sqlite3.Connection(db_url)
                 curser = connection.cursor()
 
                 query = """
@@ -118,8 +118,8 @@ class EventModel(DBMan.db.Model):
                 connection.commit()
                 connection.close()
             else:
-                DBMan.db.session.add(self)
-                DBMan.db.session.commit()
+                db.session.add(self)
+                db.session.commit()
 
     def update_in_db(self):
         '''
@@ -130,7 +130,7 @@ class EventModel(DBMan.db.Model):
             self.save_to_db()
         else:
             if app.app.config['DEBUG']:
-                connection = sqlite3.Connection(DBMan.db_url)
+                connection = sqlite3.Connection(db_url)
                 curser = connection.cursor()
 
                 query = """
@@ -152,7 +152,7 @@ class EventModel(DBMan.db.Model):
                 connection.commit()
                 connection.close()
             else:
-                DBMan.db.session.commit()
+                db.session.commit()
 
     def delete_from_db(self):
         '''
@@ -170,7 +170,7 @@ class EventModel(DBMan.db.Model):
                 time_slot.delete_from_db()
 
             if app.app.config['DEBUG']:
-                connection = sqlite3.connect(DBMan.db_url)
+                connection = sqlite3.connect(db_url)
                 curser = connection.cursor()
 
                 query = 'DELETE FROM Events WHERE event_id = ?;'
@@ -179,8 +179,8 @@ class EventModel(DBMan.db.Model):
                 connection.commit()
                 connection.close()
             else:
-                DBMan.db.session.delete(self)
-                DBMan.db.session.commit()
+                db.session.delete(self)
+                db.session.commit()
 
     @classmethod
     def find_by_event_id(cls, event_id):
@@ -189,7 +189,7 @@ class EventModel(DBMan.db.Model):
         If the event does not exist it will return None.
         '''
         if app.app.config['DEBUG']:
-            connection = sqlite3.Connection(DBMan.db_url)
+            connection = sqlite3.Connection(db_url)
             curser = connection.cursor()
 
             query = 'SELECT * FROM Events WHERE event_id = ?;'
@@ -214,7 +214,7 @@ class EventModel(DBMan.db.Model):
         If nothing found it will return and empty list.
         '''
         if app.app.config['DEBUG']:
-            connection = sqlite3.connect(DBMan.db_url)
+            connection = sqlite3.connect(db_url)
             curser = connection.cursor()
 
             query = 'SELECT * FROM Events WHERE parent_event_id = ?'
