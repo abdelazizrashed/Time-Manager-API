@@ -1,32 +1,38 @@
-
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from typing import List
+from .interfaces import TaskModelInterface, TasksListModelInterface
+from .models import TaskModel, TasksListModel
 
 class TaskModelService:
 
-    def json(self):
+    @staticmethod
+    def json(task: TaskModel):
         '''
         This method returns the current task in JSON format
         '''
         #TODO: modify it so that it returns the children as well
         return{
-            'task_id': self.task_id,
-            'task_title': self.task_title,
-            'task_description': self.task_description,
-            'time_from': self.time_form,
-            'time_to': self.time_to,
-            'time_started': self.time_started,
-            'is_completed': self.is_completed,
-            'repeat': self.repeat,
-            'reminder': self.reminder,
-            'list_id': self.list_id,
-            'color_id': self.color_id,
-            'user_id': self.user_id,
-            'parent_event_id': self.parent_event_id,
-            'parent_task_id': self.parent_task_id
+            'task_id': task.task_id,
+            'task_title': task.task_title,
+            'task_description': task.task_description,
+            'time_from': task.time_form,
+            'time_to': task.time_to,
+            'time_started': task.time_started,
+            'is_completed': task.is_completed,
+            'repeat': task.repeat,
+            'reminder': task.reminder,
+            'list_id': task.list_id,
+            'color_id': task.color_id,
+            'user_id': task.user_id,
+            'parent_event_id': task.parent_event_id,
+            'parent_task_id': task.parent_task_id
         }
 
-    #region DB methods
+    #region DB  CRUD methods
 
-    def save_to_db(self):
+    @staticmethod
+    def create(taks_attrs: TaskModelInterface, app: Flask, db: SQLAlchemy) -> TaskModel:
         '''
         This method saves the current task to the database.
         If the task already exists it will update it.
@@ -34,7 +40,8 @@ class TaskModelService:
         #TODO: implement this method
         pass
 
-    def update_in_db(self):
+    @staticmethod
+    def update(task: TaskModel, updates: TaskModelInterface, app: Flask, db: SQLAlchemy) -> TaskModel:
         '''
         This method updates the current task in the DB.
         If the task does not exit in the DB it will save it.
@@ -42,7 +49,8 @@ class TaskModelService:
         #TODO: implement this method
         pass
 
-    def delete_from_db(self):
+    @staticmethod
+    def delete(task_id: int, app: Flask, db: SQLAlchemy) -> int:
         '''
         This method deletes the currnet task from the database.
         If the task doesn't exist it will do nothing
@@ -50,8 +58,8 @@ class TaskModelService:
         #TODO: implement this method
         pass
 
-    @classmethod
-    def find_by_task_id(self, task_id):
+    @staticmethod
+    def retrieve_by_task_id(task_id: int, app: Flask) -> TaskModel:
         '''
         This method searchs the DB for a task with the given task_id.
         If nothing could be found it will return None.
@@ -59,8 +67,8 @@ class TaskModelService:
         #TODO: implement this method
         pass
 
-    @classmethod
-    def find_tasks_by_parent_task_id(self, parent_task_id):
+    @staticmethod
+    def retrieve_tasks_by_parent_task_id(parent_task_id: int, app: Flask) -> List[TaskModel]:
         '''
         This methods searchs the DB for tasks that have the task with the given id as a parent and returns them in a list.
         If nothing could be found, it will return an empty list
@@ -68,8 +76,8 @@ class TaskModelService:
         #TODO: implement this method
         pass
 
-    @classmethod 
-    def find_tasks_by_parent_event_id(self, parent_event_id):
+    @staticmethod
+    def retrieve_tasks_by_parent_event_id(parent_event_id: int, app: Flask) -> List[TaskModel]:
         '''
         This method searchs the DB for the tasks that have the event with the given id as a parent and return them in the form of a list.
         If nothing could be found it will return an empty list.
@@ -82,18 +90,20 @@ class TaskModelService:
 
 class TasksListModelService:
 
-    def json(self):
+    @staticmethod
+    def json(list: TasksListModelInterface):
         '''
         This method return the object in JSON format
         '''
         #TODO: a second thougt
         return {
-            'list_id': self.list_id,
-            'list_title': self.list_title
+            'list_id': list.list_id,
+            'list_title': list.list_title
         }
     #region DB methods
 
-    def save_to_db(self):
+    @staticmethod
+    def create(list_attrs: TasksListModelInterface, app: Flask, db: SQLAlchemy) -> TasksListModel:
         '''
         This method saves the current TasksList to the database.
         If the Tasks List already exists it will just update it.
@@ -119,7 +129,8 @@ class TasksListModelService:
                 db.session.add(self)
                 db.session.commit()
 
-    def update_in_db(self):
+    @staticmethod
+    def update(list: TasksListModel, updates: TasksListModelInterface, app: Flask, db: SQLAlchemy) -> TasksListModel:
         '''
         This method will update the current TasksList in the database with its current values.
         If the TasksList does not exist in the database it will save it.
@@ -147,7 +158,8 @@ class TasksListModelService:
             else:
                 db.session.commit()
 
-    def delete_from_db(self):
+    @staticmethod
+    def delete(list_id: int, app: Flask, db: SQLAlchemy) -> int:
         '''
         This method will delete the TasksList and its tasks from the database only if it exists.
         '''
@@ -167,8 +179,8 @@ class TasksListModelService:
                 db.session.delete(self)
                 db.session.commit()
 
-    @classmethod
-    def find_by_list_id(cls, list_id):
+    @staticmethod
+    def retrieve_by_list_id(list_id: int, app: Flask) -> TasksListModel:
         '''
         This method searchs the database for a list with the given list id.
         If the list does not exist it will return None.
