@@ -225,7 +225,6 @@ class UpdateUserResource(Resource):
         claims = get_jwt()
         data = _user_parser.parse_args()
         user: UserModel = UserModelService.retrieve_by_user_id(data['user_id'], self.app)
-        print(claims['user_id'])
         if not int(data['user_id']) == int(claims['user_id']) and not claims['is_admin']:
             return {
                 'description': "You need to be the user modifying his/ her information or an admin",
@@ -301,14 +300,14 @@ class DeleteUserResource(Resource):
         Helpers.logout(claims['jti'])
         try:
             UserModelService.delete(self.app, db, user.user_id)
+            return {
+                'message': "User deleted successfully."
+            }, 200
         except :
             return{
                 'description': "Server error when deleting user.",
                 'error': 'internal_server_error'
             }, 500
-        return {
-            'message': "User deleted successfully."
-        }, 200
 
 
 
@@ -339,7 +338,7 @@ class UserResource(Resource):
     def __init__(self, app: Flask):
         self.app = app
     
-    @jwt_required
+    @jwt_required()
     def get(self):
         claims = get_jwt()
         data = _user_parser.parse_args()
@@ -349,22 +348,41 @@ class UserResource(Resource):
                 'description': "You need to be the user modifying his/ her information or an admin",
                 'error': "invalid_credentials"
             }, 401
-        
+
         if data['user_id']:
-            user = UserModelService.retrieve_by_user_id(data['user_id'])
-            return {
-                "user_info": UserModelService.json(user)
-            }, 200
+            user = UserModelService.retrieve_by_user_id(data['user_id'], self.app)
+            if user:
+                json = UserModelService.json(user)
+                return {
+                    "user_info": json
+                }, 200
+            else:
+                return {
+                    'description': "The user_id is incorrect or the user doesn't exists",
+                    'error': "invalid_user_id"
+                }
         if data['username']:
-            user = UserModelService.retrieve_by_username(data['username'])
-            return {
-                "user_info": UserModelService.json(user)
-            }, 200
+            user = UserModelService.retrieve_by_username(data['username'], self.app)
+            if user:
+                return {
+                    "user_info": UserModelService.json(user)
+                }, 200
+            else:
+                return {
+                    'description': "The username is incorrect or the user doesn't exist",
+                    'error': "invalid_username"
+                }, 404
         if data['email']:
-            user = UserModelService.retrieve_by_email(data['email'])
-            return {
-                "user_info": UserModelService.json(user)
-            }, 200
+            user = UserModelService.retrieve_by_email(data['email'], self.app)
+            if user:
+                return {
+                    "user_info": UserModelService.json(user)
+                }, 200
+            else:
+                return {
+                    'description': "The email is incorrect or the user doesn't exist",
+                    'error': "invalid_email"
+                }, 404
         return {
             'description': "No user info was supplied. Please make sure to send the user_id, username, or email.",
             'error': "no_info"

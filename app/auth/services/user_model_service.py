@@ -102,10 +102,10 @@ class UserModelService:
         This method deletes a user and return his/her id.
         If nothing could be found it will return None
         '''
-        user = UserModelService.retrieve_by_user_id(user_id)
+        user = UserModelService.retrieve_by_user_id(user_id, app)
         if user:
             if app.config['DEBUG'] or app.config['TESTING']: 
-                query = 'DELETE FROM Events WHERE event_id = ?;'
+                query = 'DELETE FROM Users WHERE user_id = ?;'
                 DBMan.execute_sql_query(app, query, (user_id,))
                 return user_id
             else:
@@ -214,8 +214,7 @@ class UserModelService:
             query = """
                     SELECT * FROM Users;
                     """
-            result = DBMan.execute_sql_query(app, query)
-            rows = result.fetchall()
+            rows = DBMan.execute_sql_query(app, query)
             users: List[UserModel] = []
             for row in rows:
                 user = UserModel()
