@@ -1,5 +1,5 @@
 from app.shared.db_man.service import db
-from ..interfaces.interfaces import EventModelInterface, EventsTimeSlotsModelInterface
+from .interfaces import EventModelInterface, EventsTimeSlotsModelInterface
 
 
 class EventModel(db.Model):
