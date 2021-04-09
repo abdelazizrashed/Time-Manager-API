@@ -12,5 +12,5 @@ def register_routes(api: Api, app: Flask):
     api.add_resource(UpdateUserResource, "/auth/update-user", resource_class_kwargs=dict(app = app))
     api.add_resource(DeleteUserResource, '/auth/delete-user', resource_class_kwargs=dict(app = app))
     api.add_resource(UsersListResource, '/auth/users', resource_class_kwargs=dict(app = app))
-    api.add_resource(UserResource, '/auth/user/<int:user_id>', resource_class_kwargs=dict(app = app))
+    api.add_resource(UserResource, '/auth/user', resource_class_kwargs=dict(app = app))
     api.add_resource(TokenRefreshResource, '/auth/refresh', resource_class_kwargs=dict(app = app))
