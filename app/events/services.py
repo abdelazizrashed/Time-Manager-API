@@ -103,6 +103,7 @@ class EventModelService:
             if app.config['DEBUG'] or app.config['TESTING']:
                 
                 query = 'DELETE FROM Events WHERE event_id = ?;'
+                DBMan.execute_sql_query(app, query)
                 
             else:
                 db.session.delete(event)
@@ -183,7 +184,7 @@ class EventsTimeSlotModelService:
     #region DB CRUD methods
 
     @staticmethod
-    def create(time_slot_attrs: EventsTimeSlotModelInterface) -> EventsTimeSlotModel:
+    def create(time_slot_attrs: EventsTimeSlotModelInterface, app: Flask, db: SQLAlchemy) -> EventsTimeSlotModel:
         '''
         This method saves the current time slot into the database.
         If the time slot already exists in the database it will update it.
@@ -192,7 +193,7 @@ class EventsTimeSlotModelService:
         pass
 
     @staticmethod
-    def update(time_slot: EventsTimeSlotModel, updates: EventsTimeSlotModelInterface) -> EventsTimeSlotModel:
+    def update(time_slot: EventsTimeSlotModel, updates: EventsTimeSlotModelInterface, app: Flask, db: SQLAlchemy) -> EventsTimeSlotModel:
         '''
         This method updates the current time slot in the database.
         If the time slot doesn't exist in the database it will be created.
@@ -201,7 +202,7 @@ class EventsTimeSlotModelService:
         pass
 
     @staticmethod
-    def delete(time_slot: EventsTimeSlotModel) -> int:
+    def delete(time_slot: EventsTimeSlotModel, app: Flask, db: SQLAlchemy) -> int:
         '''
         This method deletes the current time slot from the database.
         If the the time slot doesn't exist in the database it will do nothing.
@@ -210,7 +211,7 @@ class EventsTimeSlotModelService:
         pass
 
     @staticmethod
-    def retrieve_slots_by_event_id(event_id: int) -> List[EventsTimeSlotModel]:
+    def retrieve_slots_by_event_id(event_id: int, app: Flask) -> List[EventsTimeSlotModel]:
         '''
         This method searches the database for the time slots that belong to the event with the given event_id
         and returns a list of the time slots
