@@ -12,9 +12,9 @@ from datetime import datetime, timezone
 from typing import List
 from app.shared.db_man.service import DBMan, db
 from app.shared.jwt.token_blocklist_model import TokenBlocklistModel
-from ..services.user_model_service import UserModelService
-from ..interfaces.user_model_interface import UserModelInterface
-from ..models.user_model import UserModel
+from .user_model_service import UserModelService
+from .user_model_interface import UserModelInterface
+from .user_model import UserModel
 
 
 #region Request Parser arguments
@@ -299,7 +299,10 @@ class DeleteUserResource(Resource):
             }, 401
         Helpers.logout(claims['jti'])
         try:
-            UserModelService.delete(self.app, db, user.user_id)
+            if not UserModelService.delete(self.app, db, user.user_id):
+                return {
+                    'message': "User couldn't be deleted. The user may not exist"
+                }, 404
             return {
                 'message': "User deleted successfully."
             }, 200
