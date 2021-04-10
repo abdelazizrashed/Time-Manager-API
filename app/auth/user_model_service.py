@@ -2,8 +2,8 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from typing import Dict, List
 from app.shared.db_man.service import DBMan
-from app.auth.models.user_model import UserModel
-from app.auth.interfaces.user_model_interface import  UserModelInterface
+from app.auth.user_model import UserModel
+from app.auth.user_model_interface import  UserModelInterface
 
 class UserModelService:
     @staticmethod
