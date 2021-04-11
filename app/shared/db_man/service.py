@@ -149,9 +149,11 @@ class DBMan:
                         event_id INTEGER DEFAULT NULL,
                         task_id INTEGER DEFAULT NULL, 
                         reminder_id INTEGER DEFAULT NULL,
+                        user_id INTEGER NOT NULL,
                         FOREIGN KEY (event_id) REFERENCES Events(event_id),
                         FOREIGN KEY (task_id) REFERENCES Tasks(task_id),
-                        FOREIGN KEY (reminder_id) REFERENCES Reminders(reminder_id)
+                        FOREIGN KEY (reminder_id) REFERENCES Reminders(reminder_id),
+                        FOREIGN KEY (user_id) REFERENCES Users(user_id)
                     );
                     """
             DBMan.execute_sql_query(app, query)
