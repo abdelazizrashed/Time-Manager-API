@@ -1,6 +1,6 @@
 from flask import Flask
 from flask_restful import Api
-from .resources.auth_resources import *
+from .auth_resources import *
 
 #TODO: remove the scripts from their separate directories into the main module directory
 

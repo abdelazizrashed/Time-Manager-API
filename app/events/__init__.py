@@ -1,6 +1,9 @@
 from flask import Flask
 from flask_restful import Api
+from .resources import EventResource, EventsListResource, StartEventResource, FinishEventResource
 
 def register_routes(app: Flask, api: Api):
-    #TODO: register routes for this module
-    pass
+    api.add_resource(EventResource, '/events/event', resource_class_kwargs = dict(app = app))
+    api.add_resource(EventsListResource, '/events/events', resource_class_kwargs = dict(app = app))
+    api.add_resource(StartEventResource, '/events/start-event', resource_class_kwargs = dict(app = app))
+    api.add_resource(FinishEventResource, '/events/finish-event', resource_class_kwargs = dict(app = app))

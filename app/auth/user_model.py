@@ -1,5 +1,5 @@
 import sqlite3
-from app.auth.interfaces.user_model_interface import UserModelInterface
+from .user_model_interface import UserModelInterface
 from app.shared.db_man.service import DBMan, db
 
 class UserModel(db.Model):

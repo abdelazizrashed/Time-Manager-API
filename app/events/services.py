@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from typing import List
 from ..shared.db_man.service import DBMan
 from .models import EventModel, EventsTimeSlotModel
-from .interfaces import EventModelInterface, EventsTimeSlotModelInterface
+from .interfaces import EventModelInterface, EventsTimeSlotsModelInterface
 
 
 class EventModelService:
@@ -184,7 +184,7 @@ class EventsTimeSlotModelService:
     #region DB CRUD methods
 
     @staticmethod
-    def create(time_slot_attrs: EventsTimeSlotModelInterface, app: Flask, db: SQLAlchemy) -> EventsTimeSlotModel:
+    def create(time_slot_attrs: EventsTimeSlotsModelInterface, app: Flask, db: SQLAlchemy) -> EventsTimeSlotModel:
         '''
         This method saves the current time slot into the database.
         If the time slot already exists in the database it will update it.
@@ -193,7 +193,7 @@ class EventsTimeSlotModelService:
         pass
 
     @staticmethod
-    def update(time_slot: EventsTimeSlotModel, updates: EventsTimeSlotModelInterface, app: Flask, db: SQLAlchemy) -> EventsTimeSlotModel:
+    def update(time_slot: EventsTimeSlotModel, updates: EventsTimeSlotsModelInterface, app: Flask, db: SQLAlchemy) -> EventsTimeSlotModel:
         '''
         This method updates the current time slot in the database.
         If the time slot doesn't exist in the database it will be created.
@@ -206,6 +206,14 @@ class EventsTimeSlotModelService:
         '''
         This method deletes the current time slot from the database.
         If the the time slot doesn't exist in the database it will do nothing.
+        '''
+        #TODO: implement the method
+        pass
+
+    @staticmethod
+    def delete_all_by_evnet_id(event_id: int, app: Flask, db: SQLAlchemy) -> List[int]:
+        '''
+        This method deletes all the slots that belong to a specific event which has the event_id supplied.
         '''
         #TODO: implement the method
         pass

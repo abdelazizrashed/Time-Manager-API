@@ -6,8 +6,8 @@ from flask_restful import Api
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
 from typing import Iterable
-from .auth.interfaces.user_model_interface import UserModelInterface
-from .auth.services.user_model_service import UserModelService
+from .auth.user_model_interface import UserModelInterface
+from .auth.user_model_service import UserModelService
 from .shared.db_man.service import DBMan, db
 from .shared.jwt.token_blocklist_model import TokenBlocklistModel
 
