@@ -144,6 +144,7 @@ class DBMan:
 
             query = """
                     CREATE TABLE IF NOT EXISTS Reports(
+                        report_id INTEGER PRIMARY KEY AUTOINCREMENT,
                         time_started TEXT DEFAULT NULL,
                         time_finished TEXT DEFAULT NULL,
                         event_id INTEGER DEFAULT NULL,

@@ -224,9 +224,10 @@ class StartEventResource(Resource):
             }, 403
         
         try:
-            ReportService.start_an_event(event.event_id)
+            report: ReportModel = ReportService.start_an_event(event.event_id)
             return{
-                "message": "Event registered as started successfully"
+                "message": "Event registered as started successfully",
+                "report": ReportService.json(report)
             }, 200
         except:
             return{
@@ -242,26 +243,34 @@ class FinishEventResource(Resource):
     @jwt_required()
     def post(self):
         claims = get_jwt()
-        event_id = _event_parser.parse_args()['event_id']
+        event_data = request.get_json()
 
-        if not event_id:
+        if not event_data['event_id']:
             return {
                 'description': "You need to supply the event_id of the event needed to be registered as finished",
                 'error': "missing_info"
             }, 400
 
-        event: EventModel = EventModelService.retrieve_by_event_id(event_id, self.app)
+        if not event_data['report_id']:
+            return {
+                'description': "You need to supply the report_id of the report that this event is register as started in.",
+                'error': "missing_info"
+            }, 400
+
+        event: EventModel = EventModelService.retrieve_by_event_id(event_data['event_id'], self.app)
 
         if not event.user_id == claims['user_id']:
             return {
                 "description": "Can't access other users data",
                 'error': 'invalid_credentials'
             }, 403
+
         
         try:
-            ReportService.finish_an_event(event.event_id)
+            report: ReportModel = ReportService.finish_an_event(event.event_id)
             return{
-                "message": "Event registered as finished successfully"
+                "message": "Event registered as finished successfully",
+                "report": ReportService.json(report)
             }, 200
         except:
             return{

@@ -65,7 +65,7 @@ class EventModelService:
             return EventModelService.create(updates, app, db)
         if app.config['DEBUG']:
             query = """
-                    UPDATE
+                    UPDATE Events
                     SET event_title = ?, event_description = ?, is_completed = ?, user_id = ?, color_id = ?, parent_event_id = ?
                     WHERE event_id = ?;
                     """
