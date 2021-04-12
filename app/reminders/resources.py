@@ -55,9 +55,7 @@ class ReminderResource(Resource):
                     'error': "missing_info"
                 }, 400
             time_slot: RemindersTimeSlotModelInterface = dict(
-                time_from = t_slot['time_from'], 
-                time_to = t_slot['time_to'],
-                location = t_slot['location'],
+                time = t_slot['time_from'],
                 repeat = t_slot['repeat'], 
                 reminder = t_slot['reminder'],
                 reminder_id = reminder_data['reminder_id']
@@ -75,7 +73,7 @@ class ReminderResource(Resource):
         reminder: ReminderModel = ReminderModelService.create(reminder_attrs, self.app, db)
         return {
             "message": "The reminder created successfully",
-            'reminder': ReminderModelService.json(reminder)
+            'reminder': ReminderModelService.json(reminder, app)
         }, 201
 
     @jwt_required()
@@ -106,9 +104,7 @@ class ReminderResource(Resource):
                         'error': "missing_info"
                     }, 400
                 t_slot_attr: RemindersTimeSlotsModelInterface = dict(
-                    time_from = t_slot['time_from'], 
-                    time_to = t_slot['time_to'],
-                    location = t_slot['location'],
+                    time = t_slot['time_from'], 
                     repeat = t_slot['repeat'], 
                     reminder = t_slot['reminder'],
                     reminder_id = reminder_data['reminder_id']
@@ -205,7 +201,7 @@ class CompleteReminderResource(Resource):
             }, 401
 
         try:
-            report: ReportModel = ReportService.finish_a_reminder(reminder.reminder_id)
+            report: ReportModel = ReportService.finish_a_reminder(reminder.reminder_id, reminder_data['time'], self.app, db)
             return{
                 "message": "Reminder registered as complete successfully",
                 "report": ReportService.json(report)

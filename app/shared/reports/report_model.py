@@ -79,8 +79,7 @@ class LogModel(db.Model):
         This method saves the current log to the database.
         If the log already exists it will update it.
         '''
-        #TODO: implement this method
-        pass
+    raise NotImplementedError
 
     def update_in_db(self):
         '''
@@ -89,7 +88,7 @@ class LogModel(db.Model):
         If the log does not exit in the DB it will save it.
         '''
         #TODO: implement this method
-        pass
+        raise NotImplementedError
 
     def delete_from_db(self):
         '''
@@ -97,7 +96,7 @@ class LogModel(db.Model):
         If the log doesn't exist it will do nothing
         '''
         #TODO: implement this method
-        pass
+        raise NotImplementedError
 
     @classmethod
     def find_by_task_id(self, task_id):
@@ -106,7 +105,7 @@ class LogModel(db.Model):
         If nothing could be found it will return None.
         '''
         #TODO: implement this method
-        pass
+        raise NotImplementedError
     
     @classmethod
     def find_by_event_id(self, reminder):
@@ -115,7 +114,7 @@ class LogModel(db.Model):
         If nothing could be found it will return None.
         '''
         #TODO: implement this method
-        pass
+        raise NotImplementedError
     
     @classmethod
     def find_by_reminder_id(self, reminder):
@@ -124,5 +123,5 @@ class LogModel(db.Model):
         If nothing could be found it will return None.
         '''
         #TODO: implement this method
-        pass
+        raise NotImplementedError
     #endregion

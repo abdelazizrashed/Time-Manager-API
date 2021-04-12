@@ -88,28 +88,27 @@ class EventModelService:
         '''
         This method will delete the current event from the database only if it exists.
         '''
-        event = EventModelService.retrieve_by_event_id(event_id)
+        event: EventModel = EventModelService.retrieve_by_event_id(event_id)
         if event:
             #TODO: delete all tasks that have this event as its parent
 
-            events =EventModelService.retrieve_events_by_parent_id(event_id)
+            events = EventModelService.retrieve_events_by_parent_id(event_id)
             for e in events:
 
-                EventModelService.delete(e)
-            
-            time_slots = EventsTimeSlotModelService.retrieve_slots_by_event_id(event_id)
-            for time_slot in time_slots:
-                EventsTimeSlotModelService.delete(time_slot)
+                EventModelService.delete(e.event_id, app, db)
+
+            EventsTimeSlotModelService.delete_all_by_event_id(event_id, app, db)
 
             if app.config['DEBUG'] or app.config['TESTING']:
                 
                 query = 'DELETE FROM Events WHERE event_id = ?;'
-                DBMan.execute_sql_query(app, query)
+                DBMan.execute_sql_query(app, query, (event_id, ))
                 
             else:
                 db.session.delete(event)
                 db.session.commit()
             return event_id
+        return None
 
     
     @staticmethod
@@ -132,6 +131,7 @@ class EventModelService:
                     color_id = row[5],
                     parent_event_id = row[6]
                 ))
+            return None
 
         else:
             return EventModel.query.filter_by(event_id = event_id).first()
@@ -171,8 +171,27 @@ class EventModelService:
         '''
         This method returns a list of all the events that belong to a user whom user_id is provided.
         '''
-        #TODO: implement this method
-        pass
+        if app.config['DEBUG'] or app.config['TESTING']:
+            query = 'SELECT * FROM Events WHERE user_id = ?'
+            rows = DBMan.execute_sql_query(app, query, (user_id,))
+
+            events: List[EventModel] = []
+            for row in rows:
+                event: EventModel = EventModel()
+                event.update(dict(
+                    event_id = row[0],
+                    event_title = row[1],
+                    event_description = row[2],
+                    is_complete = row[3],
+                    user_id = row[4],
+                    color_id = row[5],
+                    parent_event_id = row[6]
+                ))
+                events.append(event)
+
+            return events
+        else:
+            return EventModel.query.filter_by(user_id = user_id).all()
     #endregion
 
 class EventsTimeSlotModelService:

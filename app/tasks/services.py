@@ -39,7 +39,7 @@ class TaskModelService:
         If the task already exists it will update it.
         '''
         #TODO: implement this method
-        pass
+        raise NotImplementedError
 
     @staticmethod
     def update(task: TaskModel, updates: TaskModelInterface, app: Flask, db: SQLAlchemy) -> TaskModel:
@@ -48,7 +48,7 @@ class TaskModelService:
         If the task does not exit in the DB it will save it.
         '''
         #TODO: implement this method
-        pass
+        raise NotImplementedError
 
     @staticmethod
     def delete(task_id: int, app: Flask, db: SQLAlchemy) -> int:
@@ -57,7 +57,7 @@ class TaskModelService:
         If the task doesn't exist it will do nothing
         '''
         #TODO: implement this method
-        pass
+        raise NotImplementedError
 
     @staticmethod
     def retrieve_by_task_id(task_id: int, app: Flask) -> TaskModel:
@@ -66,7 +66,7 @@ class TaskModelService:
         If nothing could be found it will return None.
         '''
         #TODO: implement this method
-        pass
+        raise NotImplementedError
 
     @staticmethod
     def retrieve_tasks_by_parent_task_id(parent_task_id: int, app: Flask) -> List[TaskModel]:
@@ -75,7 +75,7 @@ class TaskModelService:
         If nothing could be found, it will return an empty list
         '''
         #TODO: implement this method
-        pass
+        raise NotImplementedError
 
     @staticmethod
     def retrieve_tasks_by_parent_event_id(parent_event_id: int, app: Flask) -> List[TaskModel]:
@@ -84,8 +84,7 @@ class TaskModelService:
         If nothing could be found it will return an empty list.
         '''
         #TODO: implement this method
-        pass
-
+        raise NotImplementedError
     #endregion
 
 

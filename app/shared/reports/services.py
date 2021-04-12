@@ -44,14 +44,16 @@ class ReportService:
         return report
 
     @staticmethod
-    def finish_an_evnet(report_id: int, time: str, app: Flask, db: SQLAlchemy) -> ReportModel:
+    def finish_an_event(report_id: int, time: str, app: Flask, db: SQLAlchemy) -> ReportModel:
         '''
         This method is called when an event is needed to be finished.
         It sets the finish time of the event as well as is_completed to be true.
         '''
-        report_attrs: ReportInterface = dict(time_started = time)
-        report: ReportModel = ReportModel()
-        report.update(report_attrs)
+        updates: ReportInterface = dict(time_started = time)
+        report: ReportModel = ReportService.retrieve_by_report_id(report_id, app)
+        if not report:
+            return None
+        report.update(updates)
         if app.config['DEBUG'] or app.config['TESTING']:
             query = """
                     UPDATE Reports
@@ -60,8 +62,26 @@ class ReportService:
                     """
             DBMan.execute_sql_query(app, query, (time, report_id))
         else:
+            db.session.commit()
+        return report
+
+    @staticmethod
+    def finish_a_reminder(reminder_id: int, time: str, app: Flask, db: SQLAlchemy) -> ReportModel:
+        '''
+        This method register a reminder as completed by setting the finish time to the time given
+        and is_completed to true.
+        '''
+        report_attrs: ReportInterface = dict(time_finished = time, reminder_id = reminder_id)
+        report: ReportModel = ReportModel()
+        report.update(report_attrs)
+        if app.config['DEBUG'] or app.config['TESTING']:
+            query = """
+                    INSERT INTO Reports (time_finished, reminder_id)
+                    VALUES (?, ?)
+                    """
+            DBMan.execute_sql_query(app, query, (time, reminder_id))
+        else:
             db.session.add(report)
             db.session.commit()
         return report
-        
             

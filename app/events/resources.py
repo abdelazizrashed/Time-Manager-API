@@ -267,7 +267,7 @@ class FinishEventResource(Resource):
 
         
         try:
-            report: ReportModel = ReportService.finish_an_event(event.event_id)
+            report: ReportModel = ReportService.finish_an_event(event.event_id, event_data['time'], app, db)
             return{
                 "message": "Event registered as finished successfully",
                 "report": ReportService.json(report)
