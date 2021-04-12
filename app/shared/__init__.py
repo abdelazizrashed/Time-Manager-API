@@ -2,5 +2,8 @@ from flask import Flask
 from flask_restful import Api
 
 def register_routes(app: Flask, api: Api):
-    #TODO: register routes for this module
-    raise NotImplementedError
+    from .color import register_routes as attach_colors
+    from .reports import register_routes as attach_reports
+    
+    attach_colors(app, api)
+    attach_reports(app, api)
