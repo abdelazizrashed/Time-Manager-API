@@ -1,5 +1,6 @@
 from flask import Flask
 from sqlalchemy import SQLAlchemy
+from typing import List
 from .models import ReportModel
 from .interfaces import ReportInterface
 from ..db_man.service import DBMan
@@ -22,6 +23,13 @@ class ReportService:
             "reminder_id": report.reminder_id,
             "user_id": report.user_id
         }
+
+    @staticmethod
+    def retrieve_all_by_user_id(user_id: int, app: Flask) -> List[ReportModel]:
+        '''
+        This method returns all the reports that belong to a specific user
+        '''
+        raise NotImplementedError
 
     @staticmethod
     def start_an_event(event_id: int, time: str, app: Flask, db: SQLAlchemy) -> ReportModel:
