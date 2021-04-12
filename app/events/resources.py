@@ -47,16 +47,14 @@ class EventResource(Resource):
             return {
                 "description": "No event_id found.",
                 "error": "missing_info"
-            }, 404
+            }, 400
         event = EventModelService.retrieve_by_event_id(event_args['event_id'], self.app)
         if event.user_id != claims['user_id']:
             return {
                 "description": "You can't access other users events.",
                 "error": "invalid_credentials"
             }, 401
-        return {
-            "event": EventModelService.json(event, self.app)
-        }, 200
+        return EventModelService.json(event, self.app), 200
         
 
     @jwt_required()
@@ -112,7 +110,7 @@ class EventResource(Resource):
 
         if not event_data['event_id']:
             return {
-                'description': "You need to supply the event_id of the event needed to be deleted",
+                'description': "You need to supply the event_id of the event needed to be modified",
                 'error': "missing_info"
             }, 400
 
