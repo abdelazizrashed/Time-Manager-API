@@ -137,7 +137,7 @@ class TaskResource(Resource):
                 'error': "missing_info"
             }, 400
 
-        task: TaskModel = TaskModelService.retrieve_by_event_id(data['task_id'], self.app)
+        task: TaskModel = TaskModelService.retrieve_by_task_id(data['task_id'], self.app)
 
         if not task.user_id == claims['user_id']:
             return {

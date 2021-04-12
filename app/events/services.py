@@ -2,6 +2,8 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from typing import List
 from ..shared.db_man.service import DBMan
+from ..tasks.models import TaskModel
+from ..tasks.services import TaskModelService
 from .models import EventModel, EventsTimeSlotModel
 from .interfaces import EventModelInterface, EventsTimeSlotsModelInterface
 
@@ -90,12 +92,15 @@ class EventModelService:
         '''
         event: EventModel = EventModelService.retrieve_by_event_id(event_id)
         if event:
-            #TODO: delete all tasks that have this event as its parent
 
             events = EventModelService.retrieve_events_by_parent_id(event_id)
             for e in events:
 
                 EventModelService.delete(e.event_id, app, db)
+
+            tasks: TaskModel = TaskModelService.retrieve_tasks_by_parent_event_id(event_id, app)
+            for task in tasks:
+                TaskModelService.delete(task.task_id, app, db)
 
             EventsTimeSlotModelService.delete_all_by_event_id(event_id, app, db)
 

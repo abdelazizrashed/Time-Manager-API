@@ -20,6 +20,7 @@ class TaskModelService:
             'time_from': task.time_form,
             'time_to': task.time_to,
             'time_started': task.time_started,
+            'time_finished': task.time_finished,
             'is_completed': task.is_completed,
             'repeat': task.repeat,
             'reminder': task.reminder,
@@ -33,13 +34,55 @@ class TaskModelService:
     #region DB  CRUD methods
 
     @staticmethod
-    def create(taks_attrs: TaskModelInterface, app: Flask, db: SQLAlchemy) -> TaskModel:
+    def create(task_attrs: TaskModelInterface, app: Flask, db: SQLAlchemy) -> TaskModel:
         '''
         This method saves the current task to the database.
         If the task already exists it will update it.
         '''
-        #TODO: implement this method
-        raise NotImplementedError
+        new_task: TaskModel = TaskModel()
+        new_task.update(task_attrs)
+        
+        if app.config['DEBUG'] or app.config['TESTING']:
+            query = """
+                    INSERT INTO Tasks(
+                        task_title,
+                        task_description,
+                        time_from,
+                        time_to,
+                        time_started,
+                        time_finished,
+                        is_complete,
+                        repeat,
+                        reminder,
+                        list_id,
+                        color_id,
+                        user_id,
+                        parent_event_id,
+                        parent_task_id
+                    ) 
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+                    """
+            DBMan.execute_sql_query(app, query,(
+                    new_task.task_title,
+                    new_task.task_description,
+                    new_task.time_from ,
+                    new_task.time_to,
+                    new_task.time_started,
+                    new_task.time_finished,
+                    new_task.is_complete,
+                    new_task.repeat,
+                    new_task.reminder,
+                    new_task.list_id,
+                    new_task.color_id,
+                    new_task.user_id,
+                    new_task.parent_event_id,
+                    new_task.parent_task_id
+                ) 
+            )
+        else:
+            db.session.add(new_task)
+            db.session.commit()
+        return new_task
 
     @staticmethod
     def update(task: TaskModel, updates: TaskModelInterface, app: Flask, db: SQLAlchemy) -> TaskModel:
@@ -47,8 +90,49 @@ class TaskModelService:
         This method updates the current task in the DB.
         If the task does not exit in the DB it will save it.
         '''
-        #TODO: implement this method
-        raise NotImplementedError
+        if not TaskModelService.retrieve_by_event_id(task.task_id):
+            return TaskModelService.create(updates, app, db)
+        new_task = task.update(updates)
+        if app.config['DEBUG']:
+            query = """
+                    UPDATE Events
+                    SET task_title = ?, 
+                    task_description = ?,
+                    time_from = ?,
+                    time_to = ?,
+                    time_started = ?,
+                    time_finished = ?, 
+                    is_completed = ?,
+                    repeat = ?,
+                    reminder = ?,
+                    list_id = ?, 
+                    color_id = ?, 
+                    user_id = ?, 
+                    parent_event_id = ?,
+                    parent_task_id = ?,
+                    WHERE task_id = ?;
+                    """
+            DBMan.execute_sql_query(app, query, (
+                    new_task.task_title,
+                    new_task.task_description,
+                    new_task.time_from ,
+                    new_task.time_to,
+                    new_task.time_started,
+                    new_task.time_finished,
+                    new_task.is_complete,
+                    new_task.repeat,
+                    new_task.reminder,
+                    new_task.list_id,
+                    new_task.color_id,
+                    new_task.user_id,
+                    new_task.parent_event_id,
+                    new_task.parent_task_id,
+                    new_task.task_id
+                )
+            )
+        else:
+            db.session.commit()
+        return new_task
 
     @staticmethod
     def delete(task_id: int, app: Flask, db: SQLAlchemy) -> int:
@@ -56,8 +140,24 @@ class TaskModelService:
         This method deletes the current task from the database.
         If the task doesn't exist it will do nothing
         '''
-        #TODO: implement this method
-        raise NotImplementedError
+        task: TaskModel = TaskModelService.retrieve_by_task_id(task_id)
+        if task:
+
+            tasks: TaskModel = TaskModelService.retrieve_tasks_by_parent_task_id(task_id, app)
+            for t in tasks:
+                TaskModelService.delete(t.task_id, app, db)
+                
+
+            if app.config['DEBUG'] or app.config['TESTING']:
+                
+                query = 'DELETE FROM Tasks WHERE task_id = ?;'
+                DBMan.execute_sql_query(app, query, (task_id, ))
+                
+            else:
+                db.session.delete(task)
+                db.session.commit()
+            return task_id
+        return None
 
     @staticmethod
     def retrieve_by_task_id(task_id: int, app: Flask) -> TaskModel:
@@ -65,8 +165,32 @@ class TaskModelService:
         This method searches the DB for a task with the given task_id.
         If nothing could be found it will return None.
         '''
-        #TODO: implement this method
-        raise NotImplementedError
+        if app.config['DEBUG'] or app.config['TESTING']:
+            query = 'SELECT * FROM Tasks WHERE task_id = ?;'
+            rows = DBMan.execute_sql_query(app, query, (task_id,))
+            task: TaskModel = TaskModel()
+            for row in rows:
+                return task.update(dict(
+                    task_id = row[0],
+                    task_title = row[1],
+                    task_description = row[2],
+                    time_from = row[3],
+                    time_to = row[4],
+                    time_started = row[5],
+                    time_finished = row[6],
+                    is_complete = row[7],
+                    repeat = row[8],
+                    reminder = row[9],
+                    list_id = row[10],
+                    color_id = row[11],
+                    user_id = row[12],
+                    parent_event_id = row[13],
+                    parent_task_id = row[14]
+                ))
+            return None
+
+        else:
+            return TaskModel.query.filter_by(task_id = task_id).first()
 
     @staticmethod
     def retrieve_tasks_by_parent_task_id(parent_task_id: int, app: Flask) -> List[TaskModel]:
@@ -74,8 +198,34 @@ class TaskModelService:
         This methods searches the DB for tasks that have the task with the given id as a parent and returns them in a list.
         If nothing could be found, it will return an empty list
         '''
-        #TODO: implement this method
-        raise NotImplementedError
+        if app.config['DEBUG'] or app.config['TESTING']:
+            query = 'SELECT * FROM Tasks WHERE parent_task_id = ?'
+            rows = DBMan.execute_sql_query(app, query, (parent_task_id,))
+
+            tasks: List[TaskModel] = []
+            for row in rows:
+                task: TaskModel = TaskModel()
+                tasks.append(task.update(dict(
+                    task_id = row[0],
+                    task_title = row[1],
+                    task_description = row[2],
+                    time_from = row[3],
+                    time_to = row[4],
+                    time_started = row[5],
+                    time_finished = row[6],
+                    is_complete = row[7],
+                    repeat = row[8],
+                    reminder = row[9],
+                    list_id = row[10],
+                    color_id = row[11],
+                    user_id = row[12],
+                    parent_event_id = row[13],
+                    parent_task_id = row[14]
+                )))
+
+            return tasks
+        else:
+            return TaskModel.query.filter_by(parent_task_id = parent_task_id).all()
 
     @staticmethod
     def retrieve_tasks_by_parent_event_id(parent_event_id: int, app: Flask) -> List[TaskModel]:
@@ -83,8 +233,71 @@ class TaskModelService:
         This method searches the DB for the tasks that have the event with the given id as a parent and return them in the form of a list.
         If nothing could be found it will return an empty list.
         '''
-        #TODO: implement this method
-        raise NotImplementedError
+        if app.config['DEBUG'] or app.config['TESTING']:
+            query = 'SELECT * FROM Tasks WHERE parent_event_id = ?'
+            rows = DBMan.execute_sql_query(app, query, (parent_event_id,))
+
+            tasks: List[TaskModel] = []
+            for row in rows:
+                task: TaskModel = TaskModel()
+                tasks.append(task.update(dict(
+                    task_id = row[0],
+                    task_title = row[1],
+                    task_description = row[2],
+                    time_from = row[3],
+                    time_to = row[4],
+                    time_started = row[5],
+                    time_finished = row[6],
+                    is_complete = row[7],
+                    repeat = row[8],
+                    reminder = row[9],
+                    list_id = row[10],
+                    color_id = row[11],
+                    user_id = row[12],
+                    parent_event_id = row[13],
+                    parent_task_id = row[14]
+                )))
+
+            return tasks
+        else:
+            return TaskModel.query.filter_by(parent_event_id = parent_event_id).all()
+
+
+    @staticmethod
+    def retrieve_tasks_by_user_id(user_id: int, app: Flask) -> List[TaskModel]:
+        '''
+        This method searches the DB for the tasks that have the event with the given id as a parent and return them in the form of a list.
+        If nothing could be found it will return an empty list.
+        '''
+        if app.config['DEBUG'] or app.config['TESTING']:
+            query = 'SELECT * FROM Tasks WHERE user_id = ?'
+            rows = DBMan.execute_sql_query(app, query, (user_id,))
+
+            tasks: List[TaskModel] = []
+            for row in rows:
+                task: TaskModel = TaskModel()
+                tasks.append(task.update(dict(
+                    task_id = row[0],
+                    task_title = row[1],
+                    task_description = row[2],
+                    time_from = row[3],
+                    time_to = row[4],
+                    time_started = row[5],
+                    time_finished = row[6],
+                    is_complete = row[7],
+                    repeat = row[8],
+                    reminder = row[9],
+                    list_id = row[10],
+                    color_id = row[11],
+                    user_id = row[12],
+                    parent_event_id = row[13],
+                    parent_task_id = row[14]
+                )))
+
+            return tasks
+        else:
+            return TaskModel.query.filter_by(user_id = user_id).all()
+            
     #endregion
 
 
@@ -174,9 +387,9 @@ class TasksListModelService:
         This method searches the database for a list with the given list id.
         If the list does not exist it will return None.
         '''
-        new_list: TasksListModel = TasksListModel()
         if app.config['DEBUG'] or app.config['TESTING']:
 
+            new_list: TasksListModel = TasksListModel()
             query = 'SELECT * FROM TasksLists WHERE list_id = ?;'
             
             rows = DBMan.execute_sql_query(app, query, (list_id, ))
@@ -188,5 +401,29 @@ class TasksListModelService:
 
         else:
             return TasksListModel.query.filter_by(list_id = list_id).first()
+
+    @staticmethod
+    def retrieve_lists_by_user_id(user_id: int, app: Flask) -> List[TasksListModel]:
+        '''
+        This method searches the database for a list with the given list id.
+        If the list does not exist it will return None.
+        '''
+        if app.config['DEBUG'] or app.config['TESTING']:
+            
+            lists: List[TasksListModel] = []
+
+            query = 'SELECT * FROM TasksLists WHERE user_id = ?;'
+            
+            rows = DBMan.execute_sql_query(app, query, (user_id, ))
+            for row in rows:
+                new_list: TasksListModel = TasksListModel()
+                lists.append( new_list.update(dict(
+                    list_id = row[0],
+                    list_title = row[1]
+                )))
+            return lists
+
+        else:
+            return TasksListModel.query.filter_by(user_id = user_id).all()
 
     #endregion

@@ -110,4 +110,46 @@ class ReportService:
             db.session.add(report)
             db.session.commit()
         return report
+
+    @staticmethod
+    def start_a_task(task_id: int, time: str, app: Flask, db: SQLAlchemy) -> ReportModel:
+        '''
+        This method is called when an event is started. 
+        It sets the start time of the event
+        '''
+        report_attrs: ReportInterface = dict(time_started = time, task_id = task_id)
+        report: ReportModel = ReportModel()
+        report.update(report_attrs)
+        if app.config['DEBUG'] or app.config['TESTING']:
+            query = """
+                    INSERT INTO Reports (time_started, task_id)
+                    VALUES (?, ?)
+                    """
+            DBMan.execute_sql_query(app, query, (time, task_id))
+        else:
+            db.session.add(report)
+            db.session.commit()
+        return report
+
+    @staticmethod
+    def finish_a_task(report_id: int, time: str, app: Flask, db: SQLAlchemy) -> ReportModel:
+        '''
+        This method is called when an event is needed to be finished.
+        It sets the finish time of the event as well as is_completed to be true.
+        '''
+        updates: ReportInterface = dict(time_started = time)
+        report: ReportModel = ReportService.retrieve_by_report_id(report_id, app)
+        if not report:
+            return None
+        report.update(updates)
+        if app.config['DEBUG'] or app.config['TESTING']:
+            query = """
+                    UPDATE Reports
+                    SET time_finished = ?
+                    WHERE report_id = ?;
+                    """
+            DBMan.execute_sql_query(app, query, (time, report_id))
+        else:
+            db.session.commit()
+        return report
             
