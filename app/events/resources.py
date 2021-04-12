@@ -205,15 +205,27 @@ class StartEventResource(Resource):
     @jwt_required()
     def post(self):
         claims = get_jwt()
-        event_id = _event_parser.parse_args()['event_id']
+        data = request.get_json()
 
-        if not event_id:
+        if not data['event_id']:
             return {
                 'description': "You need to supply the event_id of the event needed to be registered as started",
                 'error': "missing_info"
             }, 400
+        
+        if not data['time']:
+            return {
+                'description': "The start time of the event must be supplied as time",
+                'error': "missing_info"
+            }, 400
 
-        event: EventModel = EventModelService.retrieve_by_event_id(event_id, self.app)
+        event: EventModel = EventModelService.retrieve_by_event_id(data['event_id'], self.app)
+
+        if not event:
+            return{
+                'description': "Event not found",
+                'error': "not_found"
+            }, 404
 
         if not event.user_id == claims['user_id']:
             return {
@@ -222,7 +234,7 @@ class StartEventResource(Resource):
             }, 401
         
         try:
-            report: ReportModel = ReportService.start_an_event(event.event_id)
+            report: ReportModel = ReportService.start_an_event(event.event_id, data['time'], self.app, db)
             return{
                 "message": "Event registered as started successfully",
                 "report": ReportService.json(report)
@@ -254,8 +266,20 @@ class FinishEventResource(Resource):
                 'description': "You need to supply the report_id of the report that this event is register as started in.",
                 'error': "missing_info"
             }, 400
+        
+        if not event_data['time']:
+            return {
+                'description': "The finish time of the event must be supplied as time",
+                'error': "missing_info"
+            }, 400
 
         event: EventModel = EventModelService.retrieve_by_event_id(event_data['event_id'], self.app)
+
+        if not event:
+            return{
+                'description': "Event not found",
+                'error': "not_found"
+            }, 404
 
         if not event.user_id == claims['user_id']:
             return {
@@ -265,7 +289,7 @@ class FinishEventResource(Resource):
 
         
         try:
-            report: ReportModel = ReportService.finish_an_event(event.event_id, event_data['time'], app, db)
+            report: ReportModel = ReportService.finish_an_event(event_data['report_id'], event_data['time'], self.app, db)
             return{
                 "message": "Event registered as finished successfully",
                 "report": ReportService.json(report)

@@ -3,6 +3,8 @@ from flask_restful import Resource, request
 from flask_jwt_extended import jwt_required, get_jwt
 from flask_sqlalchemy import SQLAlchemy
 from ..shared.db_man.service import db
+from ..shared.reports.models import ReportModel
+from ..shared.reports.services import ReportService
 from .models import TasksListModel, TaskModel
 from .interfaces import TaskModelInterface, TasksListModelInterface
 from .services import TaskModelService, TasksListModelService
@@ -135,14 +137,14 @@ class TaskResource(Resource):
                 'error': "missing_info"
             }, 400
 
-        task: TaskModel = TaskModelService.retrieve_by_event_id(data['taskid'], self.app)
+        task: TaskModel = TaskModelService.retrieve_by_event_id(data['task_id'], self.app)
 
         if not task.user_id == claims['user_id']:
             return {
                 "description": "Can't access other users data",
                 'error': 'invalid_credentials'
             }, 401
-        #TODO: delete the reports of the event.
+        #TODO: delete the reports of the task.
         try:
             TaskModelService.delete(task.task_id, self.app, db)
             return {
@@ -162,7 +164,10 @@ class TasksResource(Resource):
 
     @jwt_required()
     def get(self):
-        raise NotImplementedError
+        claims = get_jwt()
+        return {
+            "tasks": [TaskModelService.json(task) for task in TaskModelService.retrieve_tasks_by_user_id(claims['user_id'], self.app)]
+        }, 200
 
 
 class TasksListResource(Resource):
@@ -172,7 +177,10 @@ class TasksListResource(Resource):
 
     @jwt_required()
     def get(self):
-        raise NotImplementedError
+        claims = get_jwt()
+        return {
+            "tasks": [TasksListModelService.json(task_list) for task_list in TasksListModelService.retrieve_lists_by_user_id(claims['user_id'], self.app)]
+        }, 200
 
 
 class StartTaskResource(Resource):
@@ -182,7 +190,46 @@ class StartTaskResource(Resource):
 
     @jwt_required()
     def post(self):
-        raise NotImplementedError
+        claims = get_jwt()
+        data = request.get_json()
+
+        if not data['task_id']:
+            return {
+                'description': "You need to supply the task_id of the task needed to be registered as started",
+                'error': "missing_info"
+            }, 400
+        
+        if not data['time']:
+            return {
+                'description': "The start time of the task must be supplied as time",
+                'error': "missing_info"
+            }, 400
+
+        task: TaskModel = TaskModelService.retrieve_by_task_id(data['task_id'], self.app)
+
+        if not task:
+            return{
+                'description': "Task not found",
+                'error': "not_found"
+            }, 404
+
+        if not task.user_id == claims['user_id']:
+            return {
+                "description": "Can't access other users data",
+                'error': 'invalid_credentials'
+            }, 401
+        
+        try:
+            report: ReportModel = ReportService.start_a_task(task.event_id, data['time'], self.app, db)
+            return{
+                "message": "Task registered as started successfully",
+                "report": ReportService.json(report)
+            }, 200
+        except:
+            return{
+                'description': "Failure will registering the task",
+                'error': "internal_server_error"
+            }, 500
 
 
 class FinishTaskResource(Resource):
@@ -192,4 +239,49 @@ class FinishTaskResource(Resource):
 
     @jwt_required()
     def post(self):
-        raise NotImplementedError
+        claims = get_jwt()
+        data = request.get_json()
+
+        if not data['task_id']:
+            return {
+                'description': "You need to supply the task_id of the task needed to be registered as finished",
+                'error': "missing_info"
+            }, 400
+
+        if not data['report_id']:
+            return {
+                'description': "You need to supply the report_id of the report that this event is register as started in.",
+                'error': "missing_info"
+            }, 400
+        
+        if not data['time']:
+            return {
+                'description': "The finish time of the task must be supplied as time",
+                'error': "missing_info"
+            }, 400
+
+        task: TaskModel = TaskModelService.retrieve_by_task_id(data['task_id'], self.app)
+
+        if not task:
+            return{
+                'description': "Task not found",
+                'error': "not_found"
+            }, 404
+
+        if not task.user_id == claims['user_id']:
+            return {
+                "description": "Can't access other users data",
+                'error': 'invalid_credentials'
+            }, 401
+
+        try:
+            report: ReportModel = ReportService.finish_a_task(data['report_id'], data['time'], self.app, db)
+            return{
+                "message": "Task registered as finished successfully",
+                "report": ReportService.json(report)
+            }, 200
+        except:
+            return{
+                'description': "Failure will registering the task",
+                'error': "internal_server_error"
+            }, 500
