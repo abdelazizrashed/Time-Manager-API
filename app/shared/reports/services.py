@@ -29,7 +29,25 @@ class ReportService:
         '''
         This method returns all the reports that belong to a specific user
         '''
-        raise NotImplementedError
+        if app.config['DEBUG'] or app.config['TESTING']:
+            query = 'SELECT * FROM Reports WHERE user_id = ?;'
+
+            rows = DBMan.execute_sql_query(app, query, (user_id,))
+            reports: List[ReportModel] = []
+            for row in rows:
+                report: ReportModel = ReportModel()
+                reports.append(report.update(dict(
+                    report_id = row[0],
+                    time_started = row[1],
+                    time_finished = row[2],
+                    event_id = row[3],
+                    task_id = row[4],
+                    reminder_id = row[5],
+                    user_id = row[6]
+                )))
+            return reports
+        else:
+            return ReportModel.query.filter_by(user_id = user_id).all()
 
     @staticmethod
     def start_an_event(event_id: int, time: str, app: Flask, db: SQLAlchemy) -> ReportModel:

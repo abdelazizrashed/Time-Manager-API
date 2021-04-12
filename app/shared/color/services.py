@@ -100,11 +100,25 @@ class ColorService:
                 return color
         else:
             return ColorModel.query.filter_by(color_id = color_id).first()
-        return None
 
     @staticmethod
     def retrieve_all(app: Flask) -> List[ColorModel]:
         '''
         This method retrieves all the colors present in the database.
         '''
+        if app.config['DEBUG'] or app.config['TESTING']:
+            query = 'SELECT * FROM Colors;'
+
+            rows = DBMan.execute_sql_query(app, query)
+            colors: List[ColorModel] = []
+            for row in rows:
+                color: ColorModel = ColorModel()
+                color.update(dict(
+                    color_id = row[0],
+                    color_value = row[1]
+                ))
+                colors.append(color)
+            return colors
+        else:
+            return ColorModel.query.all()
     #endregion
