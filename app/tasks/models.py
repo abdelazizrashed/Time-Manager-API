@@ -1,5 +1,5 @@
 from ..shared.db_man.service import db
-from .interfaces import TaskModelInterface, TasksListInterface
+from .interfaces import TaskModelInterface, TasksListModelInterface
 
 
 class TaskModel(db.Model):

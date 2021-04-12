@@ -50,7 +50,7 @@ class ReportModel(db.Model):
     )
 
 
-    def update(self, report_attrs: ReportInterface) -> ReportModel:
+    def update(self, report_attrs: ReportInterface):
 
         for key, value in report_attrs.items():
             setattr(self, key, value)

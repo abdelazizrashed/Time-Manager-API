@@ -1,5 +1,5 @@
 from flask import Flask
-from sqlalchemy import SQLAlchemy
+from flask_sqlalchemy import SQLAlchemy
 from typing import List
 from .models import ReportModel
 from .interfaces import ReportInterface

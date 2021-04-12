@@ -133,6 +133,7 @@ class DBMan:
 
             query = """
                     CREATE TABLE IF NOT EXISTS ReminderTimeSlots(
+                        time_slot_id INTEGER PRIMARY KEY AUTOINCREMENT,
                         time TEXT NOT NULL,
                         repeat TEXT DEFAULT NULL,
                         reminder TEXT DEFAULT NULL,

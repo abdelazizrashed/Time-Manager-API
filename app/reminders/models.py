@@ -64,6 +64,12 @@ class RemindersTimeSlotModel(db.Model):
 
     #region SQLAlchemy table columns
 
+    time_slot_id = db.Column(
+        db.Integer,
+        primary_key = True,
+        autoincrement = True
+    )
+
     time = db.Column(
         db.String(100),
         nullable = False
