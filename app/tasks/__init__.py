@@ -2,6 +2,9 @@ from flask import Flask
 from flask_restful import Api
 
 def register_routes(app: Flask, api: Api):
-    #TODO: register routes for this module
-    #TODO: implement this method
-    raise NotImplementedError
+    from .resources import TaskResource, TasksListResource, StartTaskResource, FinishTaskResource
+
+    api.add_resource(TaskResource, '/tasks/task', resource_class_kwargs=dict(app = app))
+    api.add_resource(TasksListResource, '/tasks/tasks', resource_class_kwargs=dict(app = app))
+    api.add_resource(StartTaskResource, '/tasks/start-task', resource_class_kwargs=dict(app = app))
+    api.add_resource(FinishTaskResource, '/tasks/finish-task', resource_class_kwargs=dict(app = app))
