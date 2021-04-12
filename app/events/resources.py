@@ -175,7 +175,7 @@ class EventResource(Resource):
                 "description": "Can't access other users data",
                 'error': 'invalid_credentials'
             }, 403
-
+        #TODO: delete the reports of the event.
         try:
             EventModelService.delete(event.event_id, self.app, db)
             return {

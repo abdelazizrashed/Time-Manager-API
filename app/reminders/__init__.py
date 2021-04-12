@@ -1,6 +1,9 @@
 from flask import Flask
 from flask_restful import Api
+from .resources import ReminderResource, RemindersListResource, CompleteReminderResource
 
 def register_routes(app: Flask, api: Api):
-    #TODO: register routes for this module
-    pass
+    
+    api.add_resource(ReminderResource, '/reminders/reminder', resource_class_kwargs=dict(app = app))
+    api.add_resource(RemindersListResource, '/reminders/reminders', resource_class_kwargs=dict(app = app))
+    api.add_resource(CompleteReminderResource, '/reminders/complete-reminder', resource_class_kwargs=dict(app = app))

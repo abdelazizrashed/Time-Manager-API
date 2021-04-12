@@ -291,6 +291,7 @@ class DeleteUserResource(Resource):
     def delete(self):
         claims = get_jwt()
         data = _user_parser.parse_args()
+        #TODO: delete all tasks, events, and reminder that belong to the user.
         user: UserModel = UserModelService.retrieve_by_user_id(data['user_id'], self.app)
         if not int(data['user_id']) == int(claims['user_id']) and not claims['is_admin']:
             return {
