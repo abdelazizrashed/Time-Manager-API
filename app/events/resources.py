@@ -122,7 +122,7 @@ class EventResource(Resource):
             return {
                 "description": "Can't access other users data",
                 'error': 'invalid_credentials'
-            }, 403
+            }, 401
 
         if not len(event_data['time_slots']) == 0:
             EventsTimeSlotModelService.delete_all_by_evnet_id(event.event_id, self.app, db)
@@ -174,7 +174,7 @@ class EventResource(Resource):
             return {
                 "description": "Can't access other users data",
                 'error': 'invalid_credentials'
-            }, 403
+            }, 401
         #TODO: delete the reports of the event.
         try:
             EventModelService.delete(event.event_id, self.app, db)
@@ -221,7 +221,7 @@ class StartEventResource(Resource):
             return {
                 "description": "Can't access other users data",
                 'error': 'invalid_credentials'
-            }, 403
+            }, 401
         
         try:
             report: ReportModel = ReportService.start_an_event(event.event_id)
@@ -263,7 +263,7 @@ class FinishEventResource(Resource):
             return {
                 "description": "Can't access other users data",
                 'error': 'invalid_credentials'
-            }, 403
+            }, 401
 
         
         try:
