@@ -130,7 +130,7 @@ class DBMan:
             DBMan.execute_sql_query(app, query)
 
             query = """
-                    CREATE TABLE IF NOT EXISTS ReminderTimeSlots(
+                    CREATE TABLE IF NOT EXISTS RemindersTimeSlots(
                         time_slot_id INTEGER PRIMARY KEY AUTOINCREMENT,
                         time TEXT NOT NULL,
                         repeat TEXT DEFAULT NULL,

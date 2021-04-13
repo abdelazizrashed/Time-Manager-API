@@ -1,3 +1,4 @@
+import json
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from typing import List
@@ -22,8 +23,8 @@ class ReminderModelService:
             "color_id": reminder.color_id,
             "parent_event_id": reminder.parent_event_id,
             "time_slots": [
-                RemindersTimeSlotModelService.json(reminder)
-                for reminder in RemindersTimeSlotModelService.retrieve_slots_by_reminder_id(
+                RemindersTimeSlotModelService.json(time_slot)
+                for time_slot in RemindersTimeSlotModelService.retrieve_slots_by_reminder_id(
                     reminder.reminder_id, app
                 )
             ],
@@ -86,7 +87,7 @@ class ReminderModelService:
         If the reminder doesn't exist it will save it
         """
         reminder.update(updates)
-        if not ReminderModelService.retrieve_by_reminder_id(reminder.reminder_id):
+        if not ReminderModelService.retrieve_by_reminder_id(reminder.reminder_id, app):
             return ReminderModelService.create(updates, app, db)
         if app.config["DEBUG"]:
             query = """
@@ -118,7 +119,7 @@ class ReminderModelService:
         If it doesn't exist it will do nothing
         """
         reminder: ReminderModel = ReminderModelService.retrieve_by_reminder_id(
-            reminder_id
+            reminder_id, app
         )
         if reminder:
 
@@ -185,7 +186,7 @@ class ReminderModelService:
             rows = DBMan.execute_sql_query(app, query, (user_id,))
 
             reminders: List[ReminderModel] = []
-            for row in rows:
+            for row in rows[1]:
                 event: EventModel = ReminderModel()
                 event.update(
                     dict(
@@ -236,7 +237,7 @@ class RemindersTimeSlotModelService:
 
         if app.config["DEBUG"] or app.config["TESTING"]:
             query = """
-                    INSERT INTO ReminderTimeSlots(
+                    INSERT INTO RemindersTimeSlots(
                         time, 
                         repeat,
                         reminder,
@@ -249,8 +250,8 @@ class RemindersTimeSlotModelService:
                     query,
                     (
                         new_time_slot.time,
-                        new_time_slot.repeat,
-                        new_time_slot.reminder,
+                        json.dumps(new_time_slot.repeat),
+                        json.dumps(new_time_slot.reminder),
                         new_time_slot.reminder_id,
                     ),
                 )
@@ -313,7 +314,11 @@ class RemindersTimeSlotModelService:
                 time_slot: RemindersTimeSlotModel = RemindersTimeSlotModel()
                 time_slot.update(
                     dict(
-                        time=row[0], repeat=row[3], reminder=row[4], reminder_id=row[5]
+                        time_slot_id=row[0],
+                        time=row[1],
+                        repeat=row[2],
+                        reminder=row[3],
+                        reminder_id=row[4],
                     )
                 )
                 time_slots.append(time_slot)

@@ -30,7 +30,7 @@ class ReminderResource(Resource):
                 "description": "You can't access other users data.",
                 "error": "invalid_credentials",
             }, 401
-        return {"reminder": ReminderModelService.json(reminder)}, 200
+        return {"reminder": ReminderModelService.json(reminder, self.app)}, 200
 
     @jwt_required()
     def post(self):
@@ -63,7 +63,7 @@ class RemindersResource(Resource):
         claims = get_jwt()
         return {
             "reminders": [
-                ReminderModelService.json(reminder)
+                ReminderModelService.json(reminder, self.app)
                 for reminder in ReminderModelService.retrieve_reminders_by_user_id(
                     claims["user_id"], self.app
                 )
@@ -113,9 +113,15 @@ class CompleteReminderResource(Resource):
         claims = get_jwt()
         reminder_data = request.get_json()
 
-        if not reminder_data["reminder_id"]:
+        if not reminder_data.get("reminder_id"):
             return {
                 "description": "You need to supply the reminder_id of the reminder needed to be registered as finished",
+                "error": "missing_info",
+            }, 400
+
+        if not reminder_data.get("time"):
+            return {
+                "description": "You need to supply the time of completion",
                 "error": "missing_info",
             }, 400
 
@@ -135,19 +141,19 @@ class CompleteReminderResource(Resource):
                 "error": "invalid_credentials",
             }, 401
 
-        try:
-            report: ReportModel = ReportService.finish_a_reminder(
-                reminder.reminder_id, reminder_data["time"], self.app, db
-            )
-            return {
-                "message": "Reminder registered as complete successfully",
-                "report": ReportService.json(report),
-            }, 200
-        except:
-            return {
-                "description": "Failure will registering the reminder",
-                "error": "internal_server_error",
-            }, 500
+        report: ReportModel = ReportService.finish_a_reminder(
+            reminder.reminder_id, reminder.user_id, reminder_data["time"], self.app, db
+        )
+        return {
+            "message": "Reminder registered as complete successfully",
+            "report": ReportService.json(report),
+        }, 200
+        # try:
+        # except:
+        #     return {
+        #         "description": "Failure will registering the reminder",
+        #         "error": "internal_server_error",
+        #     }, 500
 
 
 class Helper:
@@ -165,7 +171,6 @@ class Helper:
                 "error": "missing_info",
             }, 400
 
-        
         for t_slot in reminder_data["time_slots"]:
             if not t_slot["time"]:
                 return {
@@ -173,23 +178,28 @@ class Helper:
                     "error": "missing_info",
                 }, 400
 
-        reminder_attrs: ReminderModelInterface = dict(
-            reminder_title=reminder_data["reminder_title"],
-            reminder_description=reminder_data["reminder_description"],
-            color_id=reminder_data["color_id"],
-            parent_event_id=reminder_data["parent_event_id"],
-            user_id=claims["user_id"],
+        reminder: ReminderModel = ReminderModelService.create(
+            dict(
+                reminder_title=reminder_data["reminder_title"],
+                reminder_description=reminder_data["reminder_description"],
+                color_id=reminder_data["color_id"],
+                parent_event_id=reminder_data["parent_event_id"],
+                user_id=claims["user_id"],
+            ),
+            app,
+            db,
         )
-
-        reminder: ReminderModel = ReminderModelService.create(reminder_attrs, app, db)
         for t_slot in reminder_data["time_slots"]:
-            time_slot: RemindersTimeSlotModelInterface = dict(
-                time=t_slot["time"],
-                repeat=t_slot["repeat"],
-                reminder=t_slot["reminder"],
-                reminder_id=reminder.reminder_id,
+            RemindersTimeSlotModelService.create(
+                dict(
+                    time=t_slot["time"],
+                    repeat=t_slot["repeat"],
+                    reminder=t_slot["reminder"],
+                    reminder_id=reminder.reminder_id,
+                ),
+                app,
+                db,
             )
-            RemindersTimeSlotModelService.create(time_slot, app, db)
         return {
             "message": "The reminder created successfully",
             "reminder": ReminderModelService.json(reminder, app),
@@ -198,7 +208,7 @@ class Helper:
     @staticmethod
     def update_reminder(reminder_data: dict, claims: dict, app: Flask):
 
-        if not reminder_data["reminder_id"]:
+        if not reminder_data.get("reminder_id"):
             return {
                 "description": "You need to supply the reminder_id of the reminder needed to be updated",
                 "error": "missing_info",
@@ -219,13 +229,13 @@ class Helper:
                 reminder.reminder_id, app, db
             )
             for t_slot in reminder_data["time_slots"]:
-                if not t_slot["time_from"] or not t_slot["time_to"]:
+                if not t_slot["time"]:
                     return {
                         "description": "A time slot cannot be accepted without the beginning time and the end time of the slot",
                         "error": "missing_info",
                     }, 400
                 t_slot_attr: RemindersTimeSlotsModelInterface = dict(
-                    time=t_slot["time_from"],
+                    time=t_slot["time"],
                     repeat=t_slot["repeat"],
                     reminder=t_slot["reminder"],
                     reminder_id=reminder_data["reminder_id"],
@@ -243,7 +253,7 @@ class Helper:
 
         return {
             "message": "reminder updated successfully",
-            "reminder": ReminderModelService.json(updated_reminder),
+            "reminder": ReminderModelService.json(updated_reminder, app),
         }, 200
 
     @staticmethod
@@ -265,11 +275,14 @@ class Helper:
                 "error": "invalid_credentials",
             }, 401
         # TODO: delete the reports of the reminder.
-        try:
-            ReminderModelService.delete(reminder.reminder_id, app, db)
-            return {"message": "reminder deleted successfully."}, 200
-        except:
-            return {
-                "description": "An error occurred while deleting the reminder",
-                "error": "internal_server_error",
-            }, 500
+        ReminderModelService.delete(reminder.reminder_id, app, db)
+        return {
+            "message": "reminder deleted successfully.",
+            "reminder_id": reminder_data["reminder_id"],
+        }, 200
+        # try:
+        # except:
+        #     return {
+        #         "description": "An error occurred while deleting the reminder",
+        #         "error": "internal_server_error",
+        #     }, 500

@@ -29,6 +29,7 @@ class ReminderModel(db.Model):
 
         for key, value in reminder_attrs.items():
             setattr(self, key, value)
+        return self
 
 
 class RemindersTimeSlotModel(db.Model):
@@ -54,3 +55,5 @@ class RemindersTimeSlotModel(db.Model):
 
         for key, value in time_slot_attrs.items():
             setattr(self, key, value)
+
+        return self

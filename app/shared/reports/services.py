@@ -130,24 +130,24 @@ class ReportService:
 
     @staticmethod
     def finish_a_reminder(
-        reminder_id: int, time: str, app: Flask, db: SQLAlchemy
+        reminder_id: int, user_id: int, time: str, app: Flask, db: SQLAlchemy
     ) -> ReportModel:
         """
         This method register a reminder as completed by setting the finish time to the time given
         and is_completed to true.
         """
         report_attrs: ReportInterface = dict(
-            time_finished=time, reminder_id=reminder_id
+            time_finished=time, reminder_id=reminder_id, user_id=user_id
         )
         report: ReportModel = ReportModel()
         report.update(report_attrs)
         if app.config["DEBUG"] or app.config["TESTING"]:
             query = """
-                    INSERT INTO Reports (time_finished, reminder_id)
-                    VALUES (?, ?)
+                    INSERT INTO Reports (time_finished, reminder_id, user_id)
+                    VALUES (?, ?, ?)
                     """
             rows_n_rowid = list(
-                DBMan.execute_sql_query(app, query, (time, reminder_id))
+                DBMan.execute_sql_query(app, query, (time, reminder_id, user_id))
             )
             return report.update(dict(report_id=rows_n_rowid[0]))
         else:

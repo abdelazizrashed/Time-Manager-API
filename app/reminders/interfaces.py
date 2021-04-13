@@ -1,9 +1,7 @@
 from typing import TypedDict
 
 
-
-class ReminderModelInterface(TypedDict, total = False):
-
+class ReminderModelInterface(TypedDict, total=False):
 
     reminder_id: int
     reminder_title: str
@@ -14,10 +12,9 @@ class ReminderModelInterface(TypedDict, total = False):
     parent_event_id: int
 
 
+class RemindersTimeSlotModelInterface(TypedDict, total=False):
 
-class RemindersTimeSlotModelInterface(TypedDict, total = False):
-
-
+    time_slot_id: int
     time: str
     repeat: str
     reminder: str
