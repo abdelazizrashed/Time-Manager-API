@@ -5,31 +5,30 @@ from typing import Iterable
 
 db = SQLAlchemy()
 
-class DBMan:
 
+class DBMan:
     @staticmethod
     def execute_sql_query(app: Flask, query: str, params: Iterable = ()):
-        '''
+        """
         This method takes an SQLite query and execute it and returns the rows.
-        '''
-        connection = sqlite3.connect(app.config['SQLITE_DB_FILE_NAME'])
+        """
+        connection = sqlite3.connect(app.config["SQLITE_DB_FILE_NAME"])
         curser = connection.cursor()
 
         result = curser.execute(query, params)
-        yield curser.lastrowid
-        yield result.fetchall()
+        results = [curser.lastrowid, result.fetchall()]
         connection.commit()
         connection.close()
-
+        return results
 
     @staticmethod
-    def create_tables(app:Flask, db: SQLAlchemy):
-        '''
-        In case the mode of running this app is testing or debugging, 
+    def create_tables(app: Flask, db: SQLAlchemy):
+        """
+        In case the mode of running this app is testing or debugging,
         this method will create sqlite database tables in local sqlite database server.
         If this is a production server, it will create tables using SQLAlchemy.
-        '''
-        if app.config["DEBUG"] or app.config["TESTING"]: 
+        """
+        if app.config["DEBUG"] or app.config["TESTING"]:
             query = """
                     CREATE TABLE IF NOT EXISTS Users(
                         user_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -159,18 +158,16 @@ class DBMan:
                     """
             DBMan.execute_sql_query(app, query)
 
-            db.create_all(app = app)
+            db.create_all(app=app)
 
         else:
-            db.create_all(app = app)
-
-        
+            db.create_all(app=app)
 
     @staticmethod
-    def drop_tables(app: Flask, db:SQLAlchemy):
-        '''
+    def drop_tables(app: Flask, db: SQLAlchemy):
+        """
         This method deletes all tables (drop_all).
-        '''
+        """
         if app.config["DEBUG"] or app.config["TESTING"]:
             query = """
                     select 'drop table ' || name || ';' from sqlite_master
@@ -178,5 +175,5 @@ class DBMan:
                     """
             execute_sql_query(app, query)
         else:
-            db.drop_all(app = app)
+            db.drop_all(app=app)
             db.session.commit()
