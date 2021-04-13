@@ -7,6 +7,7 @@ def register_routes(app: Flask, api: Api):
         TaskResource,
         TasksResource,
         TasksListResource,
+        TasksListsResource,
         StartTaskResource,
         FinishTaskResource,
     )
@@ -15,6 +16,9 @@ def register_routes(app: Flask, api: Api):
     api.add_resource(TasksResource, "/tasks/tasks", resource_class_kwargs=dict(app=app))
     api.add_resource(
         TasksListResource, "/tasks/tasks-list", resource_class_kwargs=dict(app=app)
+    )
+    api.add_resource(
+        TasksListsResource, "/tasks/tasks-lists", resource_class_kwargs=dict(app=app)
     )
     api.add_resource(
         StartTaskResource, "/tasks/start-task", resource_class_kwargs=dict(app=app)

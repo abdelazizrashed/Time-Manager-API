@@ -53,7 +53,9 @@ class DBMan:
             query = """
                     CREATE TABLE IF NOT EXISTS TasksLists(
                         list_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        list_title TEXT NOT NULL
+                        list_title TEXT NOT NULL,
+                        user_id INTEGER NOT NULL,
+                        FOREIGN KEY (user_id) REFERENCES Users(user_id)
                     );
                     """
             DBMan.execute_sql_query(app, query)
