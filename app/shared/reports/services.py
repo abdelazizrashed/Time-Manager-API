@@ -32,9 +32,9 @@ class ReportService:
         if app.config['DEBUG'] or app.config['TESTING']:
             query = 'SELECT * FROM Reports WHERE user_id = ?;'
 
-            rows = DBMan.execute_sql_query(app, query, (user_id,))
+            rows_n_rowid = list(DBMan.execute_sql_query(app, query, (user_id,)))
             reports: List[ReportModel] = []
-            for row in rows:
+            for row in rows_n_rowid[1]:
                 report: ReportModel = ReportModel()
                 reports.append(report.update(dict(
                     report_id = row[0],
@@ -63,11 +63,12 @@ class ReportService:
                     INSERT INTO Reports (time_started, event_id)
                     VALUES (?, ?)
                     """
-            DBMan.execute_sql_query(app, query, (time, event_id))
+            rows_n_rowid = list(DBMan.execute_sql_query(app, query, (time, event_id)))
+            return report.update(dict(report_id = rows_n_rowid[0]))
         else:
             db.session.add(report)
             db.session.commit()
-        return report
+            return report
 
     @staticmethod
     def finish_an_event(report_id: int, time: str, app: Flask, db: SQLAlchemy) -> ReportModel:
@@ -105,11 +106,12 @@ class ReportService:
                     INSERT INTO Reports (time_finished, reminder_id)
                     VALUES (?, ?)
                     """
-            DBMan.execute_sql_query(app, query, (time, reminder_id))
+            rows_n_rowid = list(DBMan.execute_sql_query(app, query, (time, reminder_id)))
+            return report.update(dict(report_id = rows_n_rowid[0]))
         else:
             db.session.add(report)
             db.session.commit()
-        return report
+            return report
 
     @staticmethod
     def start_a_task(task_id: int, time: str, app: Flask, db: SQLAlchemy) -> ReportModel:
@@ -125,11 +127,12 @@ class ReportService:
                     INSERT INTO Reports (time_started, task_id)
                     VALUES (?, ?)
                     """
-            DBMan.execute_sql_query(app, query, (time, task_id))
+            rows_n_rowid = list(DBMan.execute_sql_query(app, query, (time, task_id)))
+            return report.update(dict(report_id = rows_n_rowid[0]))
         else:
             db.session.add(report)
             db.session.commit()
-        return report
+            return report
 
     @staticmethod
     def finish_a_task(report_id: int, time: str, app: Flask, db: SQLAlchemy) -> ReportModel:

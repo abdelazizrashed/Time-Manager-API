@@ -42,7 +42,7 @@ class EventModelService:
             query = """
                     INSERT INTO Events VALUES (NULL, ?, ?, ?, ?, ?, ?);
                     """
-            DBMan.execute_sql_query(app, query,(
+            rows_n_rowid = list(DBMan.execute_sql_query(app, query,(
                 new_event.event_title, 
                 new_event.event_description,
                 new_event.is_completed,
@@ -50,11 +50,12 @@ class EventModelService:
                 new_event.color_id,
                 new_event.parent_event_id
                 ) 
-            )
+            ))
+            return new_event.update(dict(event_id = rows_n_rowid[0]))
         else:
             db.session.add(new_event)
             db.session.commit()
-        return new_event
+            return new_event
 
     @staticmethod
     def update(event: EventModel, updates: EventModelInterface, app: Flask, db: SQLAlchemy) -> EventModel: 
@@ -124,9 +125,9 @@ class EventModelService:
         '''
         if app.config['DEBUG'] or app.config['TESTING']:
             query = 'SELECT * FROM Events WHERE event_id = ?;'
-            rows = DBMan.execute_sql_query(app, query, (event_id,))
+            rows_n_rowid = list(DBMan.execute_sql_query(app, query, (event_id,)))
             event: EventModel = EventModel()
-            for row in rows:
+            for row in rows_n_rowid[1]:
                 return event.update(dict(
                     event_id = row[0],
                     event_title = row[1],
@@ -150,10 +151,10 @@ class EventModelService:
         '''
         if app.config['DEBUG'] or app.config['TESTING']:
             query = 'SELECT * FROM Events WHERE parent_event_id = ?'
-            rows = DBMan.execute_sql_query(app, query, (parent_event_id,))
+            rows_n_rowid = list(DBMan.execute_sql_query(app, query, (parent_event_id,)))
 
             events: List[EventModel] = []
-            for row in rows:
+            for row in rows_n_rowid[1]:
                 event: EventModel = EventModel()
                 event.update(dict(
                     event_id = row[0],
@@ -178,10 +179,10 @@ class EventModelService:
         '''
         if app.config['DEBUG'] or app.config['TESTING']:
             query = 'SELECT * FROM Events WHERE user_id = ?'
-            rows = DBMan.execute_sql_query(app, query, (user_id,))
+            rows_n_rowid = list(DBMan.execute_sql_query(app, query, (user_id,)))
 
             events: List[EventModel] = []
-            for row in rows:
+            for row in rows_n_rowid[1]:
                 event: EventModel = EventModel()
                 event.update(dict(
                     event_id = row[0],
@@ -236,7 +237,7 @@ class EventsTimeSlotModelService:
                         event_id
                     ) VALUES (?, ?, ?, ?, ?, ?);
                     """
-            DBMan.execute_sql_query(app, query,(
+            rows_n_rowid = list(DBMan.execute_sql_query(app, query,(
                 new_time_slot.time_form,
                 new_time_slot.time_to,
                 new_time_slot.location,
@@ -244,11 +245,12 @@ class EventsTimeSlotModelService:
                 new_time_slot.reminder,
                 new_time_slot.event_id
                 ) 
-            )
+            ))
+            return new_time_slot.update(dict(time_slot_id = rows_n_rowid[0]))
         else:
             db.session.add(new_time_slot)
             db.session.commit()
-        return new_time_slot
+            return new_time_slot
 
     # @staticmethod
     # def update(time_slot: EventsTimeSlotModel, updates: EventsTimeSlotsModelInterface, app: Flask, db: SQLAlchemy) -> EventsTimeSlotModel:
@@ -289,10 +291,10 @@ class EventsTimeSlotModelService:
         '''
         if app.config['DEBUG'] or app.config['TESTING']:
             query = 'SELECT * FROM EventsTimeSlots WHERE event_id = ?'
-            rows = DBMan.execute_sql_query(app, query, (event_id,))
+            rows_n_rowid = list(DBMan.execute_sql_query(app, query, (event_id,)))
 
             time_slots: List[EventsTimeSlotModel] = []
-            for row in rows:
+            for row in rows_n_rowid[1]:
                 time_slot: EventsTimeSlotModel = EventsTimeSlotModel()
                 time_slot.update(dict(
                     time_from = row[0],

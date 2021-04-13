@@ -60,6 +60,7 @@ class UserModelService:
                     new_user.last_name
                     ) 
                 )
+                
             else:
                 db.session.add(new_user)
                 db.session.commit()
@@ -125,9 +126,9 @@ class UserModelService:
         if app.config['DEBUG'] or app.config['TESTING']:
 
             query = 'SELECT * FROM Users WHERE username = ?;'
-            rows = DBMan.execute_sql_query(app, query, (username,))
+            rows_n_rowid = list(DBMan.execute_sql_query(app, query, (username,)))
 
-            for row in rows:
+            for row in rows_n_rowid[1]:
                 if row:
                     user = UserModel()
                     return user.update(changes = dict(
@@ -156,8 +157,8 @@ class UserModelService:
 
             query = 'SELECT * FROM Users WHERE user_id = ?;'
 
-            rows = DBMan.execute_sql_query(app, query, (user_id,))
-            for row in rows:
+            rows_n_rowid = list(DBMan.execute_sql_query(app, query, (user_id,)))
+            for row in rows_n_rowid[1]:
                 if row:
                     user = UserModel()
                     return user.update(changes = dict(
@@ -185,8 +186,8 @@ class UserModelService:
 
             query = 'SELECT * FROM Users WHERE email = ?;'
 
-            rows = DBMan.execute_sql_query(app = app, query = query, params = (email,))
-            for row in rows:
+            rows_n_rowid = list(DBMan.execute_sql_query(app = app, query = query, params = (email,)))
+            for row in rows_n_rowid[1]:
                 if row:
                     user = UserModel()
                     return user.update(changes = dict(
@@ -213,9 +214,9 @@ class UserModelService:
             query = """
                     SELECT * FROM Users;
                     """
-            rows = DBMan.execute_sql_query(app, query)
+            rows_n_rowid = list(DBMan.execute_sql_query(app, query))
             users: List[UserModel] = []
-            for row in rows:
+            for row in rows_n_rowid[1]:
                 user = UserModel()
                 users.append(user.update(changes = dict(
                       user_id = row[0],

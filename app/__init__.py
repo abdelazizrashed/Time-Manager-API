@@ -44,12 +44,17 @@ def create_app(env = None):
         This method is used to attach the information of the user to the JWT access token.
         '''
         user = UserModelService.retrieve_by_user_id(identity, app)
+        if user:
+            return {
+                'user_id': user.user_id,
+                'username': user.username,
+                'email': user.email,
+                'is_admin': user.is_admin == 1
+            }
         return {
-            'user_id': user.user_id,
-            'username': user.username,
-            'email': user.email,
-            'is_admin': user.is_admin == 1
-        }
+            "description": "User is not logged in",
+            'error': "not_logged_in"
+        }, 401
 
     @jwt.token_in_blocklist_loader #callback to chick if the jwt exists in the jwt blocklist database
     def check_if_token_revoked(jwt_header, jwt_payload):
@@ -67,19 +72,19 @@ def create_app(env = None):
     @jwt.invalid_token_loader #going to be called when the authentication is not jwt for example auth using jwt instead of Bearer when using flask_jwt_extended
     def invalid_token_callback(error):
         return jsonify({
-            'description': 'Signature verification failed',
+            'description': error,
             'error': 'invalid_token'
         }), 401
 
     @jwt.unauthorized_loader #going to be called when they don't send us a jwt at all 
-    def missing_token_callback(str):
+    def missing_token_callback(reason):
         return  jsonify({
-            'description': 'Request does not contain an access token',
+            'description': reason,
             'error': 'authorization_required'
         }), 401
 
     @jwt.needs_fresh_token_loader #going to be called when the token is not fresh and a fresh one is needed
-    def token_not_fresh_callback():
+    def token_not_fresh_callback(jwt_header, jwt_payload):
         return  jsonify({
             'description': 'The token is not fresh',
             'error': 'fresh_token_required'

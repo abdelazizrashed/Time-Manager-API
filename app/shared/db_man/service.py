@@ -16,12 +16,11 @@ class DBMan:
         curser = connection.cursor()
 
         result = curser.execute(query, params)
-
-        rows = result.fetchall()
+        yield curser.lastrowid
+        yield result.fetchall()
         connection.commit()
         connection.close()
 
-        return rows
 
     @staticmethod
     def create_tables(app:Flask, db: SQLAlchemy):

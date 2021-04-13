@@ -91,6 +91,7 @@ class EventResource(Resource):
         event_attrs: EventModelInterface = dict(
             event_title = event_data['event_title'],
             event_description = event_data['event_description'],
+            is_complete = event_data['is_complete'],
             color_id = event_data['color_id'],
             parent_event_id = event_data['parent_event_id'],
             user_id = claims['user_id']

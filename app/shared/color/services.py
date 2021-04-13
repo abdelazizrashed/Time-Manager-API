@@ -31,12 +31,13 @@ class ColorService:
             query = """
                     INSERT INTO Colors (color_value) VALUES (?);
                     """
-            DBMan.execute_sql_query(app, query, (color.color_value))
+            rows_n_rowid = list(DBMan.execute_sql_query(app, query, (color.color_value)))
+            return color.update(dict(color_id = rows_n_rowid[0]))
 
         else:
             db.session.add(color)
             db.session.commit()
-        return color
+            return color
 
     @staticmethod
     def update(color: ColorModel, updates: ColorInterface, app: Flask, db: SQLAlchemy) -> ColorModel:
@@ -90,8 +91,8 @@ class ColorService:
         if app.config['DEBUG'] or app.config['TESTING']:
             query = 'SELECT * FROM Colors WHERE color_id = ?;'
 
-            rows = DBMan.execute_sql_query(query, (color_id,))
-            for row in rows:
+            rows_n_rowid = list(DBMan.execute_sql_query(query, (color_id,)))
+            for row in rows_n_rowid[1]:
                 color: ColorModel = ColorModel()
                 color.update(dict(
                     color_id = row[0],
@@ -109,9 +110,9 @@ class ColorService:
         if app.config['DEBUG'] or app.config['TESTING']:
             query = 'SELECT * FROM Colors;'
 
-            rows = DBMan.execute_sql_query(app, query)
+            rows_n_rowid = list(DBMan.execute_sql_query(app, query))
             colors: List[ColorModel] = []
-            for row in rows:
+            for row in rows_n_rowid[1]:
                 color: ColorModel = ColorModel()
                 color.update(dict(
                     color_id = row[0],

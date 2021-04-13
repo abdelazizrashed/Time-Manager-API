@@ -47,7 +47,7 @@ class ReminderModelService:
                     ) 
                     VALUES (?, ?, ?, ?, ?, ?);
                     """
-            DBMan.execute_sql_query(app, query,(
+            rows_n_rowid = list(DBMan.execute_sql_query(app, query,(
                 new_reminder.reminder_title, 
                 new_reminder.reminder_description,
                 new_reminder.is_completed,
@@ -55,11 +55,12 @@ class ReminderModelService:
                 new_reminder.color_id,
                 new_reminder.parent_event_id
                 ) 
-            )
+            ))
+            return new_reminder.update(dict(reminder_id = rows_n_rowid[0]))
         else:
             db.session.add(new_reminder)
             db.session.commit()
-        return new_reminder
+            return new_reminder
 
     @staticmethod
     def update(reminder: ReminderModel, updates: ReminderModelInterface, app: Flask, db: SQLAlchemy) -> ReminderModel:
@@ -120,9 +121,9 @@ class ReminderModelService:
         '''
         if app.config['DEBUG'] or app.config['TESTING']:
             query = 'SELECT * FROM Reminders WHERE reminder_id = ?;'
-            rows = DBMan.execute_sql_query(app, query, (reminder_id,))
+            rows_n_rowid = list(DBMan.execute_sql_query(app, query, (reminder_id,)))
             reminder: ReminderModel = ReminderModel()
-            for row in rows:
+            for row in rows_n_rowid[1]:
                 return reminder.update(dict(
                     reminder_id = row[0],
                     reminder_title = row[1],
@@ -213,17 +214,18 @@ class RemindersTimeSlotModelService:
                         reminder_id
                     ) VALUES (?, ?, ?, ?);
                     """
-            DBMan.execute_sql_query(app, query,(
+            rows_n_rowid = list(DBMan.execute_sql_query(app, query,(
                 new_time_slot.time,
                 new_time_slot.repeat,
                 new_time_slot.reminder,
                 new_time_slot.reminder_id
                 ) 
-            )
+            ))
+            return new_time_slot.update(dict(time_slot_id = rows_n_rowid[0]))
         else:
             db.session.add(new_time_slot)
             db.session.commit()
-        return new_time_slot
+            return new_time_slot
 
     @staticmethod
     def update(time_slot: RemindersTimeSlotModel, updates: RemindersTimeSlotModelInterface, app: Flask, db: SQLAlchemy) -> RemindersTimeSlotModel:
@@ -259,10 +261,10 @@ class RemindersTimeSlotModelService:
         '''
         if app.config['DEBUG'] or app.config['TESTING']:
             query = 'SELECT * FROM RemindersTimeSlots WHERE reminder_id = ?'
-            rows = DBMan.execute_sql_query(app, query, (reminder_id,))
+            rows_n_rowid = list(DBMan.execute_sql_query(app, query, (reminder_id,)))
 
             time_slots: List[RemindersTimeSlotModel] = []
-            for row in rows:
+            for row in rows_n_rowid[1]:
                 time_slot: RemindersTimeSlotModel = RemindersTimeSlotModel()
                 time_slot.update(dict(
                     time = row[0],

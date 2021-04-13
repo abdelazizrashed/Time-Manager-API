@@ -154,7 +154,7 @@ class AdminRemoveResource(Resource):
         user = UserModelService.update(user, updates, self.app, db)
         
         return {
-            'message': "User upgraded to admin successfully",
+            'message': "User downgraded from admin successfully",
             "user_data": UserModelService.json(user)
         }
 
@@ -347,27 +347,30 @@ class UserResource(Resource):
         claims = get_jwt()
         data = _user_parser.parse_args()
 
-        if not int(data['user_id']) == int(claims['user_id']) and not claims['is_admin']:
-            return {
-                'description': "You need to be the user modifying his/ her information or an admin",
-                'error': "invalid_credentials"
-            }, 401
-
         if data['user_id']:
             user = UserModelService.retrieve_by_user_id(data['user_id'], self.app)
-            if user:
-                json = UserModelService.json(user)
-                return {
-                    "user_info": json
-                }, 200
-            else:
+            if not user:
                 return {
                     'description': "The user_id is incorrect or the user doesn't exists",
                     'error': "invalid_user_id"
-                }
+                }, 400
+            if not int(user.user_id) == int(claims['user_id']) and not claims['is_admin']:
+                return {
+                    'description': "You need to be the user modifying his/ her information or an admin",
+                    'error': "invalid_credentials"
+                }, 401
+
+            return {
+                "user_info": UserModelService.json(user)
+            }, 200
         if data['username']:
             user = UserModelService.retrieve_by_username(data['username'], self.app)
             if user:
+                if not int(user.user_id) == int(claims['user_id']) and not claims['is_admin']:
+                    return {
+                        'description': "You need to be the user modifying his/ her information or an admin",
+                        'error': "invalid_credentials"
+                    }, 401
                 return {
                     "user_info": UserModelService.json(user)
                 }, 200
@@ -379,6 +382,11 @@ class UserResource(Resource):
         if data['email']:
             user = UserModelService.retrieve_by_email(data['email'], self.app)
             if user:
+                if not int(user.user_id) == int(claims['user_id']) and not claims['is_admin']:
+                    return {
+                        'description': "You need to be the user modifying his/ her information or an admin",
+                        'error': "invalid_credentials"
+                    }, 401
                 return {
                     "user_info": UserModelService.json(user)
                 }, 200

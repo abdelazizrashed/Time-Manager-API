@@ -62,7 +62,7 @@ class TaskModelService:
                     ) 
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
                     """
-            DBMan.execute_sql_query(app, query,(
+            rows_n_rowid = list(DBMan.execute_sql_query(app, query,(
                     new_task.task_title,
                     new_task.task_description,
                     new_task.time_from ,
@@ -78,11 +78,12 @@ class TaskModelService:
                     new_task.parent_event_id,
                     new_task.parent_task_id
                 ) 
-            )
+            ))
+            return new_task.update(dict(task_id = rows_n_rowid[0]))
         else:
             db.session.add(new_task)
             db.session.commit()
-        return new_task
+            return new_task
 
     @staticmethod
     def update(task: TaskModel, updates: TaskModelInterface, app: Flask, db: SQLAlchemy) -> TaskModel:
@@ -167,9 +168,9 @@ class TaskModelService:
         '''
         if app.config['DEBUG'] or app.config['TESTING']:
             query = 'SELECT * FROM Tasks WHERE task_id = ?;'
-            rows = DBMan.execute_sql_query(app, query, (task_id,))
+            rows_n_rowid = list(DBMan.execute_sql_query(app, query, (task_id,)))
             task: TaskModel = TaskModel()
-            for row in rows:
+            for row in rows_n_rowid[1]:
                 return task.update(dict(
                     task_id = row[0],
                     task_title = row[1],
@@ -200,10 +201,10 @@ class TaskModelService:
         '''
         if app.config['DEBUG'] or app.config['TESTING']:
             query = 'SELECT * FROM Tasks WHERE parent_task_id = ?'
-            rows = DBMan.execute_sql_query(app, query, (parent_task_id,))
+            rows_n_rowid = list(DBMan.execute_sql_query(app, query, (parent_task_id,)))
 
             tasks: List[TaskModel] = []
-            for row in rows:
+            for row in rows_n_rowid[1]:
                 task: TaskModel = TaskModel()
                 tasks.append(task.update(dict(
                     task_id = row[0],
@@ -235,10 +236,10 @@ class TaskModelService:
         '''
         if app.config['DEBUG'] or app.config['TESTING']:
             query = 'SELECT * FROM Tasks WHERE parent_event_id = ?'
-            rows = DBMan.execute_sql_query(app, query, (parent_event_id,))
+            rows_n_rowid = list(DBMan.execute_sql_query(app, query, (parent_event_id,)))
 
             tasks: List[TaskModel] = []
-            for row in rows:
+            for row in rows_n_rowid[1]:
                 task: TaskModel = TaskModel()
                 tasks.append(task.update(dict(
                     task_id = row[0],
@@ -271,10 +272,10 @@ class TaskModelService:
         '''
         if app.config['DEBUG'] or app.config['TESTING']:
             query = 'SELECT * FROM Tasks WHERE user_id = ?'
-            rows = DBMan.execute_sql_query(app, query, (user_id,))
+            rows_n_rowid = list(DBMan.execute_sql_query(app, query, (user_id,)))
 
             tasks: List[TaskModel] = []
-            for row in rows:
+            for row in rows_n_rowid[1]:
                 task: TaskModel = TaskModel()
                 tasks.append(task.update(dict(
                     task_id = row[0],
@@ -392,8 +393,8 @@ class TasksListModelService:
             new_list: TasksListModel = TasksListModel()
             query = 'SELECT * FROM TasksLists WHERE list_id = ?;'
             
-            rows = DBMan.execute_sql_query(app, query, (list_id, ))
-            for row in rows:
+            rows_n_rowid = list(DBMan.execute_sql_query(app, query, (list_id, )))
+            for row in rows_n_rowid[1]:
                 return new_list.update(dict(
                     list_id = row[0],
                     list_title = row[1]
@@ -414,8 +415,8 @@ class TasksListModelService:
 
             query = 'SELECT * FROM TasksLists WHERE user_id = ?;'
             
-            rows = DBMan.execute_sql_query(app, query, (user_id, ))
-            for row in rows:
+            rows_n_rowid = list(DBMan.execute_sql_query(app, query, (user_id, )))
+            for row in rows_n_rowid[1]:
                 new_list: TasksListModel = TasksListModel()
                 lists.append( new_list.update(dict(
                     list_id = row[0],

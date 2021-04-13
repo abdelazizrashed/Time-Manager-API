@@ -7,6 +7,7 @@ from .auth_resources import *
 def register_routes(api: Api, app: Flask):
     api.add_resource(UserRegisterResource, '/auth/register', resource_class_kwargs=dict(app = app))
     api.add_resource(AdminRegisterResource, "/auth/admin-register", resource_class_kwargs=dict(app = app))
+    api.add_resource(AdminRemoveResource, "/auth/admin-remove", resource_class_kwargs=dict(app = app))
     api.add_resource(UserLoginWithEmailResource, "/auth/login-with-email", resource_class_kwargs=dict(app = app))
     api.add_resource(UserLoginWithUsernameResource, "/auth/login-with-username", resource_class_kwargs=dict(app = app))
     api.add_resource(UserLogoutResource, "/auth/logout", resource_class_kwargs=dict(app = app))
