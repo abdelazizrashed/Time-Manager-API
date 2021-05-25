@@ -6,3 +6,4 @@ Typing
 uwsgi
 Flask-JWT
 psycopg2
+mypy_extensions
