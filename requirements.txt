@@ -3,3 +3,6 @@ Flask-RESTful
 Flask-JWT-Extended
 Flask-SQLAlchemy
 Typing
+uwsgi
+Flask-JWT
+psycopg2
