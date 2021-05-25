@@ -7,7 +7,7 @@ import string
 def get_db_url_modifies(default):
     url = os.environ.get("DATABASE_URL", default)
     if url != default:
-        url = string.replace("postgres", "postgresql", 1)
+        url = url.replace("postgres", "postgresql", 1)
     return url
 
 

@@ -10,14 +10,12 @@ from .auth.user_model_interface import UserModelInterface
 from .auth.user_model_service import UserModelService
 from .shared.db_man.service import DBMan, db
 from .shared.jwt.token_blocklist_model import TokenBlocklistModel
-import os
-import string
 
 # endregion
 
 
 def create_app(env=None):
-    from app.config import config_by_name
+    from app.config import config_by_name, get_db_url_modifies
     from app.routes import register_routes
 
     app = Flask(__name__)
@@ -25,7 +23,7 @@ def create_app(env=None):
     api = Api(app)
 
     jwt = JWTManager(app)
-    print(os.environ.get("DATABASE_URL", "couldn't find db URL"))
+    print(get_db_url_modifies("couldn't find db URL"))
     db.app = app
     db.init_app(app)
     db.create_all(app=app)
