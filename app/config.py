@@ -1,6 +1,14 @@
 import os
 from datetime import timedelta
 from typing import List, Type
+import string
+
+
+def get_db_url_modifies(default):
+    url = os.environ.get("DATABASE_URL", default)
+    if url != default:
+        url = string.replace("postgres", "postgresql", 1)
+    return url
 
 
 class BaseConfig(object):
@@ -20,7 +28,7 @@ class DevelopmentConfig(BaseConfig):
     DEBUG = True
     TESTING = False
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    SQLALCHEMY_DATABASE_URI = BaseConfig.DATABASE_URI
+    SQLALCHEMY_DATABASE_URI = get_db_url_modifies(BaseConfig.DATABASE_URI)
     JWT_SECRET_KEY = "secret key"
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=1)
 
@@ -33,7 +41,7 @@ class TestingConfig(BaseConfig):
     TESTING = True
     DEBUG = True
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL", BaseConfig.DATABASE_URI)
+    SQLALCHEMY_DATABASE_URI = get_db_url_modifies(BaseConfig.DATABASE_URI)
     JWT_SECRET_KEY = "secret key"
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=1)
 
@@ -46,7 +54,7 @@ class ProductionConfig(BaseConfig):
     TESTING = False
     DEBUG = False
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL", BaseConfig.DATABASE_URI)
+    SQLALCHEMY_DATABASE_URI = get_db_url_modifies(BaseConfig.DATABASE_URI)
     JWT_SECRET_KEY = "secret key"
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=1)
 
