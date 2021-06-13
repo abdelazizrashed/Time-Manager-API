@@ -25,7 +25,7 @@ class ReminderResource(Resource):
         reminder: ReminderModel = ReminderModelService.retrieve_by_reminder_id(
             reminder_data["reminder_id"], self.app
         )
-        if reminder.user_id != claims["user_id"]:
+        if reminder.user_id != claims.get("user_id"):
             return {
                 "description": "You can't access other users data.",
                 "error": "invalid_credentials",
@@ -65,7 +65,7 @@ class RemindersResource(Resource):
             "reminders": [
                 ReminderModelService.json(reminder, self.app)
                 for reminder in ReminderModelService.retrieve_reminders_by_user_id(
-                    claims["user_id"], self.app
+                    claims.get("user_id"), self.app
                 )
             ]
         }, 200
@@ -135,7 +135,7 @@ class CompleteReminderResource(Resource):
                 "error": "not_found",
             }, 404
 
-        if not reminder.user_id == claims["user_id"]:
+        if not reminder.user_id == claims.get("user_id"):
             return {
                 "description": "Can't access other users data",
                 "error": "invalid_credentials",
@@ -184,7 +184,7 @@ class Helper:
                 reminder_description=reminder_data["reminder_description"],
                 color_id=reminder_data["color_id"],
                 parent_event_id=reminder_data["parent_event_id"],
-                user_id=claims["user_id"],
+                user_id=claims.get("user_id"),
             ),
             app,
             db,
@@ -218,7 +218,7 @@ class Helper:
             reminder_data["reminder_id"], app
         )
 
-        if not reminder.user_id == claims["user_id"]:
+        if not reminder.user_id == claims.get("user_id"):
             return {
                 "description": "Can't access other users data",
                 "error": "invalid_credentials",
@@ -269,7 +269,7 @@ class Helper:
             reminder_data["reminder_id"], app
         )
 
-        if not reminder.user_id == claims["user_id"]:
+        if not reminder.user_id == claims.get("user_id"):
             return {
                 "description": "Can't access other users data",
                 "error": "invalid_credentials",

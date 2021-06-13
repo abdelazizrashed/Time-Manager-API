@@ -5,6 +5,7 @@ from .interfaces import EventModelInterface, EventsTimeSlotsModelInterface
 class EventModel(db.Model):
 
     __tablename__ = "Events"
+    # __tablename__ = "Users"
 
     # region SQLAlchemy table columns
 

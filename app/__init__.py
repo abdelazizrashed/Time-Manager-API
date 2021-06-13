@@ -20,14 +20,15 @@ def create_app(env=None):
 
     app = Flask(__name__)
     app.config.from_object(config_by_name[env or "test"])
+    app.config["SQLALCHEMY_DATABASE_URI"] = get_db_url_modifies("sqlite:///data.db")
     api = Api(app)
 
     jwt = JWTManager(app)
     print(get_db_url_modifies("couldn't find db URL"))
     db.app = app
     db.init_app(app)
-    db.create_all(app=app)
-    DBMan.create_tables(app, db)  # TODO: find a better place for creating tables later
+    db.create_all()
+    DBMan.create_tables(app)  # TODO: find a better place for creating tables later
 
     register_routes(api, app)
 

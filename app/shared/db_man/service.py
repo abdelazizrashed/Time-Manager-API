@@ -22,7 +22,7 @@ class DBMan:
         return results
 
     @staticmethod
-    def create_tables(app: Flask, db: SQLAlchemy):
+    def create_tables(app: Flask):
         """
         In case the mode of running this app is testing or debugging,
         this method will create sqlite database tables in local sqlite database server.

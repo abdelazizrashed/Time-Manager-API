@@ -46,7 +46,7 @@ class ReportService:
                 )
 
         else:
-            return ReportModel.query.filter_by(report_id=report_id).fetchone()
+            return ReportModel.query.filter_by(report_id=report_id).first()
 
     @staticmethod
     def retrieve_all_by_user_id(user_id: int, app: Flask) -> List[ReportModel]:

@@ -41,7 +41,12 @@ class EventResource(Resource):
         if not event_args["event_id"]:
             return {"description": "No event_id found.", "error": "missing_info"}, 400
         event = EventModelService.retrieve_by_event_id(event_args["event_id"], self.app)
-        if event.user_id != claims["user_id"]:
+        if event == None:
+            return {
+                "description": "Event could not be found",
+                "error": "not_found",
+            }, 404
+        if event.user_id != claims.get("user_id"):
             return {
                 "description": "You can't access other users events.",
                 "error": "invalid_credentials",
@@ -80,7 +85,7 @@ class EventsResource(Resource):
             "events": [
                 EventModelService.json(event, self.app)
                 for event in EventModelService.retrieve_events_by_user_id(
-                    claims["user_id"], self.app
+                    claims.get("user_id"), self.app
                 )
             ]
         }, 200
@@ -148,14 +153,14 @@ class StartEventResource(Resource):
         if not event:
             return {"description": "Event not found", "error": "not_found"}, 404
 
-        if not event.user_id == claims["user_id"]:
+        if not event.user_id == claims.get("user_id"):
             return {
                 "description": "Can't access other users data",
                 "error": "invalid_credentials",
             }, 401
 
         report: ReportModel = ReportService.start_an_event(
-            event.event_id, claims["user_id"], data["time"], self.app, db
+            event.event_id, claims.get("user_id"), data["time"], self.app, db
         )
         return {
             "message": "Event registered as started successfully",
@@ -203,7 +208,7 @@ class FinishEventResource(Resource):
         if not event:
             return {"description": "Event not found", "error": "not_found"}, 404
 
-        if not event.user_id == claims["user_id"]:
+        if not event.user_id == claims.get("user_id"):
             return {
                 "description": "Can't access other users data",
                 "error": "invalid_credentials",
@@ -257,13 +262,12 @@ class Helper:
         event: EventModel = EventModelService.create(event_attrs, app, db)
 
         for t_slot in event_data["time_slots"]:
-            print(t_slot["time_from"])
             time_slot: EventsTimeSlotsModelInterface = dict(
                 time_from=t_slot.get("time_from"),
                 time_to=t_slot.get("time_to"),
                 location=t_slot.get("location"),
                 repeat=t_slot.get("repeat"),
-                reminder=t_slot.get("reminder"),
+                reminder=json.dumps(t_slot.get("reminder")),
                 event_id=event.event_id,
             )
             EventsTimeSlotModelService.create(time_slot, app, db)
@@ -285,7 +289,9 @@ class Helper:
             event_data["event_id"], app
         )
 
-        if not event.user_id == claims["user_id"]:
+        if event == None:
+            return Helper.create_event(event_data, claims, app)
+        if not event.user_id == claims.get("user_id"):
             return {
                 "description": "Can't access other users data",
                 "error": "invalid_credentials",
@@ -304,7 +310,7 @@ class Helper:
                     time_to=t_slot.get("time_to"),
                     location=t_slot.get("location"),
                     repeat=t_slot.get("repeat"),
-                    reminder=t_slot.get("reminder"),
+                    reminder=json.dumps(t_slot.get("reminder")),
                     event_id=event.event_id,
                 )
                 EventsTimeSlotModelService.create(t_slot_attr, app, db)
@@ -340,7 +346,7 @@ class Helper:
         if not event:
             return {"description": "Event not found", "error": "not_found"}, 404
 
-        if not event.user_id == claims["user_id"]:
+        if not event.user_id == claims.get("user_id"):
             return {
                 "description": "Can't access other users data",
                 "error": "invalid_credentials",

@@ -27,7 +27,7 @@ class TaskModel(db.Model):
 
     reminder = db.Column(db.String(100), nullable=True, default=None)
 
-    list_id = db.Column(db.Integer, db.ForeignKey("Lists.list_id"), nullable=False)
+    list_id = db.Column(db.Integer, db.ForeignKey("TasksLists.list_id"), nullable=False)
 
     color_id = db.Column(db.Integer, db.ForeignKey("Colors.color_id"), nullable=False)
 

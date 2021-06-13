@@ -21,7 +21,7 @@ class TaskResource(Resource):
         if not task_data.get("task_id"):
             return {"description": "No task id found.", "error": "missing_info"}, 400
         task = TaskModelService.retrieve_by_task_id(task_data["task_id"], self.app)
-        if task.user_id != claims["user_id"]:
+        if task.user_id != claims.get("user_id"):
             return {
                 "description": "You can't access other users events.",
                 "error": "invalid_credentials",
@@ -61,7 +61,7 @@ class TasksResource(Resource):
             "tasks": [
                 TaskModelService.json(task)
                 for task in TaskModelService.retrieve_tasks_by_user_id(
-                    claims["user_id"], self.app
+                    claims.get("user_id"), self.app
                 )
             ]
         }, 200
@@ -100,7 +100,9 @@ class TasksListResource(Resource):
             "message": "The list created successfully",
             "list": TasksListModelService.json(
                 TasksListModelService.create(
-                    dict(list_title=data.get("list_title"), user_id=claims["user_id"]),
+                    dict(
+                        list_title=data.get("list_title"), user_id=claims.get("user_id")
+                    ),
                     self.app,
                     db,
                 )
@@ -119,7 +121,7 @@ class TasksListsResource(Resource):
             "lists": [
                 TasksListModelService.json(_list)
                 for _list in TasksListModelService.retrieve_lists_by_user_id(
-                    claims["user_id"], self.app
+                    claims.get("user_id"), self.app
                 )
             ]
         }
@@ -153,14 +155,14 @@ class StartTaskResource(Resource):
         if not task:
             return {"description": "Task not found", "error": "not_found"}, 404
 
-        if not task.user_id == claims["user_id"]:
+        if not task.user_id == claims.get("user_id"):
             return {
                 "description": "Can't access other users data",
                 "error": "invalid_credentials",
             }, 401
 
         report: ReportModel = ReportService.start_a_task(
-            task.task_id, claims["user_id"], data["time"], self.app, db
+            task.task_id, claims.get("user_id"), data["time"], self.app, db
         )
         return {
             "message": "Task registered as started successfully",
@@ -208,7 +210,7 @@ class FinishTaskResource(Resource):
         if not task:
             return {"description": "Task not found", "error": "not_found"}, 404
 
-        if not task.user_id == claims["user_id"]:
+        if not task.user_id == claims.get("user_id"):
             return {
                 "description": "Can't access other users data",
                 "error": "invalid_credentials",
@@ -293,7 +295,7 @@ class Helper:
             task_data["task_id"], app
         )
 
-        if not task.user_id == claims["user_id"]:
+        if not task.user_id == claims.get("user_id"):
             return {
                 "description": "Can't access other users data",
                 "error": "invalid_credentials",
@@ -321,7 +323,7 @@ class Helper:
         if task_data.get("color_id"):
             updates.update(color_id=task_data["color_id"])
         if task_data.get("user_id"):
-            updates.update(user_id=claims["user_id"])
+            updates.update(user_id=claims.get("user_id"))
         if task_data.get("parent_event_id"):
             updates.update(parent_event_id=task_data["parent_event_id"])
         if task_data.get("parent_task_id"):
@@ -345,7 +347,7 @@ class Helper:
 
         task: TaskModel = TaskModelService.retrieve_by_task_id(data["task_id"], app)
 
-        if not task.user_id == claims["user_id"]:
+        if not task.user_id == claims.get("user_id"):
             return {
                 "description": "Can't access other users data",
                 "error": "invalid_credentials",

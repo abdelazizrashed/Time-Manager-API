@@ -20,6 +20,7 @@ class BaseConfig(object):
     SQLITE_DB_FILE_NAME = "data.db"
     JWT_SECRET_KEY = "secret key"
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=1)
+    PROPAGATE_EXCEPTIONS = True
 
 
 class DevelopmentConfig(BaseConfig):
@@ -31,6 +32,7 @@ class DevelopmentConfig(BaseConfig):
     SQLALCHEMY_DATABASE_URI = get_db_url_modifies(BaseConfig.DATABASE_URI)
     JWT_SECRET_KEY = "secret key"
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=1)
+    PROPAGATE_EXCEPTIONS = True
 
 
 class TestingConfig(BaseConfig):
@@ -44,6 +46,7 @@ class TestingConfig(BaseConfig):
     SQLALCHEMY_DATABASE_URI = get_db_url_modifies(BaseConfig.DATABASE_URI)
     JWT_SECRET_KEY = "secret key"
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=1)
+    PROPAGATE_EXCEPTIONS = True
 
 
 class ProductionConfig(BaseConfig):
@@ -57,6 +60,7 @@ class ProductionConfig(BaseConfig):
     SQLALCHEMY_DATABASE_URI = get_db_url_modifies(BaseConfig.DATABASE_URI)
     JWT_SECRET_KEY = "secret key"
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=1)
+    PROPAGATE_EXCEPTIONS = True
 
 
 EXPORT_CONFIGS: List[Type[BaseConfig]] = [
