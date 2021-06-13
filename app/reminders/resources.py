@@ -6,6 +6,7 @@ from .interfaces import ReminderModelInterface, RemindersTimeSlotModelInterface
 from .services import ReminderModelService, RemindersTimeSlotModelService
 from ..shared.db_man.service import db
 from ..shared.reports.services import ReportService
+import json
 
 
 class ReminderResource(Resource):
@@ -25,6 +26,11 @@ class ReminderResource(Resource):
         reminder: ReminderModel = ReminderModelService.retrieve_by_reminder_id(
             reminder_data["reminder_id"], self.app
         )
+        if reminder == None:
+            return {
+                "description": "Reminder couldn't be found",
+                "error": "not_found",
+            }, 404
         if reminder.user_id != claims.get("user_id"):
             return {
                 "description": "You can't access other users data.",
@@ -194,7 +200,7 @@ class Helper:
                 dict(
                     time=t_slot["time"],
                     repeat=t_slot["repeat"],
-                    reminder=t_slot["reminder"],
+                    reminder=json.dumps(t_slot["reminder"]),
                     reminder_id=reminder.reminder_id,
                 ),
                 app,
@@ -218,6 +224,8 @@ class Helper:
             reminder_data["reminder_id"], app
         )
 
+        if reminder == None:
+            return Helper.create_reminder(reminder_data, claims, app)
         if not reminder.user_id == claims.get("user_id"):
             return {
                 "description": "Can't access other users data",
@@ -237,7 +245,7 @@ class Helper:
                 t_slot_attr: RemindersTimeSlotsModelInterface = dict(
                     time=t_slot["time"],
                     repeat=t_slot["repeat"],
-                    reminder=t_slot["reminder"],
+                    reminder=json.dumps(t_slot["reminder"]),
                     reminder_id=reminder_data["reminder_id"],
                 )
                 RemindersTimeSlotModelService.create(t_slot_attr, app, db)
@@ -269,6 +277,11 @@ class Helper:
             reminder_data["reminder_id"], app
         )
 
+        if reminder == None:
+            return {
+                "description": "Reminder couldn't be found",
+                "error": "not_found",
+            }, 404
         if not reminder.user_id == claims.get("user_id"):
             return {
                 "description": "Can't access other users data",

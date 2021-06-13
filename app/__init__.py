@@ -20,7 +20,7 @@ def create_app(env=None):
 
     app = Flask(__name__)
     app.config.from_object(config_by_name[env or "test"])
-    app.config["SQLALCHEMY_DATABASE_URI"] = get_db_url_modifies("sqlite:///data.db")
+    # app.config["SQLALCHEMY_DATABASE_URI"] = get_db_url_modifies("sqlite:///data.db")
     api = Api(app)
 
     jwt = JWTManager(app)
