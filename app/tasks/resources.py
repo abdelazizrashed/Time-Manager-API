@@ -8,6 +8,7 @@ from ..shared.reports.services import ReportService
 from .models import TasksListModel, TaskModel
 from .interfaces import TaskModelInterface, TasksListModelInterface
 from .services import TaskModelService, TasksListModelService
+import json
 
 
 class TaskResource(Resource):
@@ -21,6 +22,8 @@ class TaskResource(Resource):
         if not task_data.get("task_id"):
             return {"description": "No task id found.", "error": "missing_info"}, 400
         task = TaskModelService.retrieve_by_task_id(task_data["task_id"], self.app)
+        if task == None:
+            return {"description": "Task couldn't be found", "error": "not_found"}, 404
         if task.user_id != claims.get("user_id"):
             return {
                 "description": "You can't access other users events.",
@@ -65,6 +68,18 @@ class TasksResource(Resource):
                 )
             ]
         }, 200
+
+    @jwt_required()
+    def post(self):
+        return {"message": "This request isn't supported yet"}, 405
+
+    @jwt_required()
+    def put(self):
+        return {"message": "This request isn't supported yet"}, 405
+
+    @jwt_required()
+    def delete(self):
+        return {"message": "This request isn't supported yet"}, 405
 
 
 class TasksListResource(Resource):
@@ -216,19 +231,19 @@ class FinishTaskResource(Resource):
                 "error": "invalid_credentials",
             }, 401
 
-        try:
-            report: ReportModel = ReportService.finish_a_task(
-                data["report_id"], data["time"], self.app, db
-            )
-            return {
-                "message": "Task registered as finished successfully",
-                "report": ReportService.json(report),
-            }, 200
-        except:
-            return {
-                "description": "Failure will registering the task",
-                "error": "internal_server_error",
-            }, 500
+        report: ReportModel = ReportService.finish_a_task(
+            data["report_id"], data["time"], self.app, db
+        )
+        return {
+            "message": "Task registered as finished successfully",
+            "report": ReportService.json(report),
+        }, 200
+        # try:
+        # except:
+        #     return {
+        #         "description": "Failure will registering the task",
+        #         "error": "internal_server_error",
+        #     }, 500
 
 
 class Helper:
@@ -267,7 +282,7 @@ class Helper:
             time_started=task_data.get("time_started"),
             time_finished=task_data.get("time_finished"),
             is_complete=task_data.get("is_complete"),
-            reminder=task_data.get("reminder"),
+            reminder=json.dumps(task_data.get("reminder")),
             repeat=task_data.get("repeat"),
             list_id=task_data.get("list_id"),
             color_id=task_data.get("color_id"),
@@ -276,7 +291,7 @@ class Helper:
             parent_task_id=task_data.get("parent_task_id"),
         )
 
-        task: EventModel = TaskModelService.create(task_attrs, app, db)
+        task: TaskModel = TaskModelService.create(task_attrs, app, db)
         return {
             "message": "The task created successfully",
             "task": TaskModelService.json(task),
@@ -294,7 +309,8 @@ class Helper:
         task: TaskModel = TaskModelService.retrieve_by_task_id(
             task_data["task_id"], app
         )
-
+        if task == None:
+            return Helper.create_task(task_data, claims, app)
         if not task.user_id == claims.get("user_id"):
             return {
                 "description": "Can't access other users data",
@@ -347,6 +363,8 @@ class Helper:
 
         task: TaskModel = TaskModelService.retrieve_by_task_id(data["task_id"], app)
 
+        if task == None:
+            return {"description": "Task couldn't be found", "error": "not_found"}, 404
         if not task.user_id == claims.get("user_id"):
             return {
                 "description": "Can't access other users data",

@@ -12,15 +12,17 @@ class ReportService:
         """
         This method return the report object in JSON format.
         """
-        return {
-            "report_id": report.report_id,
-            "time_started": report.time_started,
-            "time_finished": report.time_finished,
-            "event_id": report.event_id,
-            "task_id": report.task_id,
-            "reminder_id": report.reminder_id,
-            "user_id": report.user_id,
-        }
+        if report:
+            return {
+                "report_id": report.report_id,
+                "time_started": report.time_started,
+                "time_finished": report.time_finished,
+                "event_id": report.event_id,
+                "task_id": report.task_id,
+                "reminder_id": report.reminder_id,
+                "user_id": report.user_id,
+            }
+        return None
 
     @staticmethod
     def retrieve_by_report_id(report_id: int, app: Flask) -> ReportModel:

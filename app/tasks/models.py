@@ -13,13 +13,13 @@ class TaskModel(db.Model):
 
     task_description = db.Column(db.String(250), nullable=True, default=None)
 
-    time_form = db.Column(db.String(100), nullable=False)
+    time_from = db.Column(db.String(100), nullable=False)
 
     time_to = db.Column(db.String(100), nullable=False)
 
-    time_started = db.Column(db.String(100), nullable=False)
+    time_started = db.Column(db.String(100), nullable=True)
 
-    time_finished = db.Column(db.String(100), nullable=False)
+    time_finished = db.Column(db.String(100), nullable=True)
 
     is_completed = db.Column(db.Boolean, nullable=True, default=0)
 

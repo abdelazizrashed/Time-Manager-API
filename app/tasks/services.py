@@ -18,7 +18,7 @@ class TaskModelService:
             "task_id": task.task_id,
             "task_title": task.task_title,
             "task_description": task.task_description,
-            "time_from": task.time_form,
+            "time_from": task.time_from,
             "time_to": task.time_to,
             "time_started": task.time_started,
             "time_finished": task.time_finished,
@@ -338,7 +338,10 @@ class TasksListModelService:
         This method return the object in JSON format
         """
         # TODO: a second thought
-        return {"list_id": list.list_id, "list_title": list.list_title}
+        if list:
+            return {"list_id": list.list_id, "list_title": list.list_title}
+        else:
+            return None
 
     # region DB methods
 
